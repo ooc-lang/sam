@@ -26,7 +26,7 @@ Sam: class {
         try {
             runCommand(command, args)
         } catch (e: Exception) {
-            log("command %s failed with error: %s" format(command, e formatMessage()))
+            log("We've had errors: %s" format(e message))
         }
     }
 
@@ -39,7 +39,7 @@ Sam: class {
             case "status" =>
                 status(getUseFile(args))
             case =>
-                log("Unkown command: %s" format(command))
+                log("Unknown command: %s" format(command))
                 usage()
                 exit(1)
         }
@@ -59,9 +59,9 @@ Sam: class {
             return
         }
 
-        pp := PullPool new()
+        pp := ActionPool new(this)
         for (dep in useFile deps) {
-            pp add(dep)
+            pp add(useFile name, dep)
         }
         pp run()
     }
@@ -95,7 +95,7 @@ Sam: class {
     }
 
     log: func (s: String) {
-        "[sam] %s" printfln(s)
+        "%s" printfln(s)
     }
     
 }
@@ -131,6 +131,20 @@ UseFile: class {
     }
 
     parse: func {
+        PropReader new(path, props)
+
+        // parse deps
+        requires := props get("Requires")
+        if (requires) {
+            deps addAll(requires split(',', false) map (|dep| dep trim(" \t")))
+        }
+    }
+
+}
+
+PropReader: class {
+
+    init: func (path: String, props: HashMap<String, String>) {
         fr := FileReader new(path)
 
         while (fr hasNext?()) {
@@ -145,17 +159,12 @@ UseFile: class {
                 continue
             }
 
-            (key, value) := (tokens[0], tokens[1])
-            props put(key, value)
+            key := tokens removeAt(0)
+            value := tokens join(":")
+            props put(key trim("\t "), value trim("\t "))
         }
 
         fr close()
-
-        // parse deps
-        requires := props get("Requires")
-        if (requires) {
-            deps addAll(requires split(',', false) map (|dep| dep trim(" \t")))
-        }
     }
 
 }
@@ -176,7 +185,6 @@ GitRepo: class {
 
     init: func (=dir, =url) {
         assert (dir != null)
-        log("New git repo: dir %s, url %s" format(dir, url))
     }
 
     init: func ~noUrl (.dir) {
@@ -244,7 +252,7 @@ GitRepo: class {
     }
 
     log: func (s: String) {
-        "[git] %s" printfln(s)
+        "%s" printfln(s)
     }
 
 }
@@ -255,16 +263,24 @@ SamException: class extends Exception {
 
 }
 
-PullTask: class {
+ActionTask: class {
 
-    name: String
-    repo: GitRepo
+    sam: Sam
+    parent, name: String
 
-    init: func (=name, =repo) {
+    init: func (=sam, =parent, =name) {
 
     }
 
-    process: func (pool: PullPool) {
+    process: func (pool: ActionPool) {
+        sam log("Getting %s (required by %s)" format(name, parent))
+
+        f := Formula new(sam, name)
+        url := f origin
+
+        dirName := GitRepo dirName(url)
+        repo := GitRepo new(File new(GitRepo oocLibs(), dirName) getPath(), url)
+
         if (repo exists?()) {
             repo pull()
         } else {
@@ -277,32 +293,29 @@ PullTask: class {
         }
 
         for (dep in useFile deps) {
-            pool add(dep)
+            pool add(name, dep)
         }
     }
 
 }
 
-PullPool: class {
+ActionPool: class {
 
-    queued := HashMap<String, GitRepo> new()
-    doing := ArrayList<PullTask> new()
+    sam: Sam
+    queued := HashMap<String, ActionTask> new()
+    doing := ArrayList<ActionTask> new()
 
-    init: func {
+    init: func (=sam) {
     }
 
-    add: func (name: String) {
+    add: func (parent, name: String) {
         if (queued contains?(name)) {
             return
         }
 
-        url := resolveName(name)
-        "Adding %s => %s to pullPool" printfln(name, url)
-        dirName := GitRepo dirName(url)
-
-        repo := GitRepo new(File new(GitRepo oocLibs(), dirName) getPath(), url)
-        queued put(name, repo)
-        doing add(PullTask new(name, repo))
+        task := ActionTask new(sam, parent, name)
+        queued put(name, task)
+        doing add(task)
     }
 
     run: func {
@@ -312,18 +325,38 @@ PullPool: class {
         }
     }
 
-    /**
-     * In goes name, out goes git url
-     */
-    resolveName: func (name: String) -> String {
-        match name {
-            case "gnaar" => "https://github.com/nddrylliog/gnaar.git"
-            case "dye" => "https://github.com/nddrylliog/dye.git"
-            case =>
-                SamException new("Unknown library: %s" format(name)) throw()
-                null
+}
+
+Formula: class {
+
+    sam: Sam
+    name, path: String
+
+    origin: String
+
+    props := HashMap<String, String> new()
+
+    init: func (=sam, =name) {
+        file := File new(File new(sam home, "library"), "%s.yml" format(name))
+        path = file getPath()
+
+        if (!file exists?()) {
+            SamException new("Unknown formula: %s (tried %s)" format(name, path)) throw()
         }
+
+        parse()
+    }
+
+    parse: func {
+        PropReader new(path, props)
+
+        if (!props contains?("Origin")) {
+            SamException new("Malformed formula (doesn't contain Origin): %s" format(path)) throw()
+        }
+
+        origin = props get("Origin")
     }
 
 }
+
 
