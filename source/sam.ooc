@@ -1,6 +1,7 @@
 
 import structs/[ArrayList, HashMap]
 import io/File
+import os/[Process, ShellUtils]
 
 main: func (args: ArrayList<String>) {
 
@@ -32,7 +33,7 @@ Sam: class {
     }
 
     update: func {
-        log("Sam should update! Home = %s" format(home path))
+        GitRepo new(home path) pull()
     }
 
     get: func (useFile: UseFile) {
@@ -68,7 +69,7 @@ Sam: class {
     }
 
     log: func (s: String) {
-        s println()
+        "[sam] %s" printfln(s)
     }
     
 }
@@ -81,6 +82,56 @@ UseFile: class {
     init: func (=path) {
         f := File new(path)
         name = f name()
+    }
+
+}
+
+GitException: class extends Exception {
+    
+    init: super func
+
+}
+
+GitRepo: class {
+
+    GIT_PATH: static String = null
+
+    dir: String
+    url: String
+
+    init: func (=dir, =url) {
+        assert (dir != null)
+    }
+
+    init: func ~noUrl (.dir) {
+        init(dir, "")
+    }
+
+    pull: func {
+        log("Pulling %s..." format(dir))
+        p := Process new([gitPath(), "pull"])
+        p setCwd(dir)
+        (output, status) := p getOutput()
+        output println()
+        
+        if (status != 0) {
+            GitException new("Failed to pull directory %s" format(dir))
+        }
+    }
+
+    exists?: func {
+        File new(dir) exists?()
+    }
+
+    gitPath: func -> String {
+        if (!GIT_PATH) {
+            GIT_PATH = ShellUtils findExecutable("git", true) getPath()
+        }
+        GIT_PATH
+    }
+
+    log: func (s: String) {
+        "[git] %s" printfln(s)
     }
 
 }
