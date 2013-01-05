@@ -1,5 +1,4 @@
 Name: sam
 Description: Sam keeps your ooc repos up to date
 SourcePath: source
-Requires: yaml
 Main: sam.ooc
