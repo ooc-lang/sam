@@ -16,7 +16,7 @@ access to that directory. For me, my usual choice is `~/Dev`.
 
 To build sam, run:
 
-```
+```bash
 rock -v
 ```
 
@@ -27,7 +27,7 @@ depending on your platform.
 Then, simply add sam to your PATH in your `~/.bashrc` or `~/.zshrc`.
 For me, the line looks something like:
 
-```
+```bash
 # Add sam to path
 export PATH=$PATH:~/Dev/sam/
 ```
@@ -35,7 +35,7 @@ export PATH=$PATH:~/Dev/sam/
 Then, source your rc file (or simply log out and in again) and, just to
 make sure, run:
 
-```
+```bash
 sam update
 ```
 
