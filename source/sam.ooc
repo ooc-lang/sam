@@ -14,7 +14,14 @@ Sam: class {
     home: File
 
     parseArgs: func (args: ArrayList<String>) {
-        home = File new(args[0]) getAbsoluteFile() parent()
+        execFile := File new(args[0])
+
+        try {
+            home = execFile getAbsoluteFile() parent()
+        } catch (e: Exception) {
+            execFile2 := ShellUtils findExecutable(execFile getPath(), true)
+            home = execFile2 getAbsoluteFile() parent()
+        }
 
         if (args size <= 1) {
             usage()
