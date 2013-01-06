@@ -354,7 +354,9 @@ GitRepo: class {
         "====================================" println()
 
         "Are you okay with that? [y/N]" println()
-        answer := FileReader new(stdin) readLine()
+        inputReader := FileReader new(stdin)
+        answer := inputReader readLine()
+        inputReader close()
 
         if (answer startsWith?("y")) {
             configFile write(content)
