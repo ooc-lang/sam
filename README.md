@@ -39,6 +39,9 @@ make sure, run:
 sam update
 ```
 
+If you get no errors, then congrats! sam is properly installed, it found
+its own home, your `$OOC_LIBS`, and can use your git install.
+
 ### Philosophy
 
 Every dependency has a unique name, every unique name corresponds
