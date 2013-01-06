@@ -153,7 +153,7 @@ UseFile: class {
     }
 
     find: static func (name: String) -> This {
-        dirs := File new(GitRepo oocLibs()) getChildren()
+        dirs := File new(GitRepo oocLibs()) getChildren() filter(|f| f dir?())
         fileName := "%s.use" format(name)
 
         for (dir in dirs) {
