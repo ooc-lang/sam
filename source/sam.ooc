@@ -228,8 +228,13 @@ GitRepo: class {
     }
 
     clone: func {
-        log("Cloning %s into %s" format(url, dir))
-        log("J/k, we don't know how to do that yet...")
+        p := Process new([gitPath(), "clone", url, dir])
+        (output, exitCode) := p getOutput()
+        printOutput(output)
+        
+        if (exitCode != 0) {
+            GitException new("Failed to clone repository %s into %s" format(url, dir))
+        }
     }
 
     status: func {
