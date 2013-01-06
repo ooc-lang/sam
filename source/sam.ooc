@@ -59,7 +59,7 @@ Sam: class {
             return
         }
 
-        pp := ActionPool new(this)
+        pp := ActionPool new(this, ActionType GET)
         for (dep in useFile deps) {
             pp add(useFile name, dep)
         }
@@ -67,7 +67,16 @@ Sam: class {
     }
 
     status: func (useFile: UseFile) {
-        log("Sam should 'status' from useFile %s!" format(useFile name))
+        if (useFile deps empty?()) {
+            log("%s has no dependencies! Bailing out Greece." format(useFile name))
+            return
+        }
+
+        pp := ActionPool new(this, ActionType STATUS)
+        for (dep in useFile deps) {
+            pp add(useFile name, dep)
+        }
+        pp run()
     }
 
     getUseFile: func (args: ArrayList<String>) -> UseFile {
@@ -201,20 +210,30 @@ GitRepo: class {
     }
 
     pull: func {
-        log("Pulling %s..." format(dir))
         p := Process new([gitPath(), "pull"])
         p setCwd(dir)
-        (output, status) := p getOutput()
+        (output, exitCode) := p getOutput()
         printOutput(output)
         
-        if (status != 0) {
-            GitException new("Failed to pull directory %s" format(dir))
+        if (exitCode != 0) {
+            GitException new("Failed to pull repository in %s" format(dir))
         }
     }
 
     clone: func {
         log("Cloning %s into %s" format(url, dir))
         log("J/k, we don't know how to do that yet...")
+    }
+
+    status: func {
+        p := Process new([gitPath(), "status", "--short"])
+        p setCwd(dir)
+        (output, exitCode) := p getOutput()
+        printOutput(output)
+        
+        if (exitCode != 0) {
+            GitException new("Failed to get status of repository %s" format(dir))
+        }
     }
 
     exists?: func -> Bool {
@@ -263,6 +282,11 @@ SamException: class extends Exception {
 
 }
 
+ActionType: enum {
+    GET
+    STATUS
+}
+
 ActionTask: class {
 
     sam: Sam
@@ -273,7 +297,7 @@ ActionTask: class {
     }
 
     process: func (pool: ActionPool) {
-        sam log("Getting %s (required by %s)" format(name, parent))
+        sam log("Processing %s (required by %s)" format(name, parent))
 
         f := Formula new(sam, name)
         url := f origin
@@ -281,19 +305,46 @@ ActionTask: class {
         dirName := GitRepo dirName(url)
         repo := GitRepo new(File new(GitRepo oocLibs(), dirName) getPath(), url)
 
-        if (repo exists?()) {
-            repo pull()
-        } else {
-            repo clone()
+        doGet := func {
+            if (repo exists?()) {
+                repo pull()
+            } else {
+                repo clone()
+            }
+
+            useFile := UseFile find(name)
+            if (!useFile) {
+                SamException new("use file for %s not found after cloning/pulling" format(name)) throw()
+            }
+
+            for (dep in useFile deps) {
+                pool add(name, dep)
+            }
         }
 
-        useFile := UseFile find(name)
-        if (!useFile) {
-            SamException new("use file for %s not found after cloning/pulling" format(name)) throw()
+        doStatus := func {
+            if (repo exists?()) {
+                repo status()
+            } else {
+                sam log("Repository %s doesn't exist!" format(repo dir))
+                return
+            }
+
+            useFile := UseFile find(name)
+            if (!useFile) {
+                SamException new("use file for %s not found after cloning/pulling" format(name)) throw()
+            }
+
+            for (dep in useFile deps) {
+                pool add(name, dep)
+            }
         }
 
-        for (dep in useFile deps) {
-            pool add(name, dep)
+        match (pool actionType) {
+            case ActionType GET =>
+                doGet()
+            case ActionType STATUS =>
+                doStatus()
         }
     }
 
@@ -304,8 +355,9 @@ ActionPool: class {
     sam: Sam
     queued := HashMap<String, ActionTask> new()
     doing := ArrayList<ActionTask> new()
+    actionType: ActionType
 
-    init: func (=sam) {
+    init: func (=sam, =actionType) {
     }
 
     add: func (parent, name: String) {
