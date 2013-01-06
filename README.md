@@ -39,4 +39,6 @@ sam assumes a few things:
   * `sam status [USEFILE]`: displays the status of all the
     dependencies listed in the given .use file. Behaves like
     get in case no .use file is specified.
+  * `sam promote [USEFILE]`: replace a read-only GitHub url (https/git)
+    with a read-write GitHub url (ssh)
 

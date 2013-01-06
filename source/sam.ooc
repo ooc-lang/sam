@@ -45,6 +45,8 @@ Sam: class {
                 get(getUseFile(args))
             case "status" =>
                 status(getUseFile(args))
+            case "promote" =>
+                promote(getUseFile(args))
             case =>
                 log("Unknown command: %s" format(command))
                 usage()
@@ -53,7 +55,18 @@ Sam: class {
     }
 
     usage: func {
-        log("Usage: sam [update|get|status]")
+        log("Usage: sam [update|get|status|promote]")
+        log(" ")
+        log("Commands")
+        log("  * update: update sam's grimoir of formulas")
+        log("  * get [USEFILE]: clone and/or pull all dependencies")
+        log("  * status [USEFILE]: display short git status of all dependencies")
+        log("  * promote [USEFILE]: replace read-only github url with a read-write one for given use file")
+        log(" ")
+        log("Note: All USEFILE arguments are optional. By default, the")
+        log("first .use file of the current directory is used")
+        log(" ")
+        log("Copyleft 2013 Amos Wenger aka @nddrylliog")
     }
 
     update: func {
@@ -84,6 +97,14 @@ Sam: class {
             pp add(useFile name, dep)
         }
         pp run()
+    }
+
+    promote: func (useFile: UseFile) {
+        log("Promoting %s" format(useFile name))
+
+        dir := File new(useFile path) getAbsoluteFile() parent()
+        repo := GitRepo new(dir getPath())
+        repo promote()
     }
 
     getUseFile: func (args: ArrayList<String>) -> UseFile {
@@ -223,7 +244,7 @@ GitRepo: class {
         printOutput(output)
         
         if (exitCode != 0) {
-            GitException new("Failed to pull repository in %s" format(dir))
+            GitException new("Failed to pull repository in %s" format(dir)) throw()
         }
     }
 
@@ -233,7 +254,7 @@ GitRepo: class {
         printOutput(output)
         
         if (exitCode != 0) {
-            GitException new("Failed to clone repository %s into %s" format(url, dir))
+            GitException new("Failed to clone repository %s into %s" format(url, dir)) throw()
         }
     }
 
@@ -244,7 +265,102 @@ GitRepo: class {
         printOutput(output)
         
         if (exitCode != 0) {
-            GitException new("Failed to get status of repository %s" format(dir))
+            GitException new("Failed to get status of repository %s" format(dir)) throw()
+        }
+    }
+
+    promote: func {
+        gitDir := File new(dir, ".git")
+        if (!gitDir exists?()) {
+            GitException new("%s is not a git repository" format(dir)) throw()
+        }
+
+        configFile := File new(gitDir, "config")
+        if (!configFile exists?()) {
+            GitException new("%s doesn't have a .git/config file" format(dir)) throw()
+        }
+
+        fr := FileReader new(configFile)
+
+        foundOrigin := false
+
+        while (fr hasNext?()) {
+            line := fr readLine() trim("\t ")
+            if (line startsWith?("[remote \"origin\"]")) {
+                foundOrigin = true
+                break
+            }
+        }
+
+        if (!foundOrigin) {
+            GitException new("No 'origin' remote in repo %s" format(dir)) throw()
+        }
+
+        url: String
+
+        while (fr hasNext?()) {
+            line := fr readLine() trim("\t ")
+            if (line startsWith?("url = ")) {
+                url = line split('=', false)[1] trim("\t ")
+                break
+            }
+        }
+
+        "Found url: %s" format(url) println()
+
+        if (url startsWith?("git@github.com")) {
+            "Already read-write! Maybe you don't have push access?" println()
+            return
+        }
+
+        sshUrl: String
+
+        // To understand the next part, read:
+        // https://help.github.com/articles/which-remote-url-should-i-use
+
+        // https urls are smart, they'll be either read-only or read-write
+        // depending on your permissions. But they require special setup
+        // so that you don't have to enter your username/password everytime.
+        HTTPS_PREFIX := "https://github.com/"
+        if (url startsWith?(HTTPS_PREFIX)) {
+            repoName := url[HTTPS_PREFIX size..-1]
+            if (repoName endsWith?(".git")) {
+                // URLs with or without '.git' are valid, but we want it without
+                repoName = repoName[0..-5]
+            }
+
+            // create an SSH url
+            sshUrl = "git@github.com:%s.git" format(repoName)
+        }
+
+        // git urls are always read-only
+        GIT_PREFIX := "git://"
+        if (url startsWith?(GIT_PREFIX)) {
+            repoName := url[GIT_PREFIX size..-1]
+            if (repoName endsWith?(".git")) {
+                // URLs with or without '.git' are valid, but we want it without
+                repoName = repoName[0..-5]
+            }
+
+            // create an ssh url
+            sshUrl = "git@github.com:%s.git" format(repoName)
+        }
+
+        fr close()
+        content := configFile read() replaceAll(url, sshUrl)
+        "Will replace your .git/config file with this: " println()
+        "====================================" println()
+        content println()
+        "====================================" println()
+
+        "Are you okay with that? [y/N]" println()
+        answer := FileReader new(stdin) readLine()
+
+        if (answer startsWith?("y")) {
+            configFile write(content)
+            "Done!" println()
+        } else {
+            "Not doing anything." println()
         }
     }
 
