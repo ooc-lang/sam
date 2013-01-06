@@ -70,12 +70,16 @@ Sam: class {
     }
 
     update: func {
+        log("Pulling repository %s" format(home path))
         GitRepo new(home path) pull()
     }
 
     get: func (useFile: UseFile) {
+        log("Processing %s" format(useFile name))
+        useFile repo() pull()
+
         if (useFile deps empty?()) {
-            log("%s has no dependencies! Bailing out Greece." format(useFile name))
+            log("%s has no dependencies! Our work here is done." format(useFile name))
             return
         }
 
@@ -87,6 +91,9 @@ Sam: class {
     }
 
     status: func (useFile: UseFile) {
+        log("Processing %s" format(useFile name))
+        useFile repo() status()
+
         if (useFile deps empty?()) {
             log("%s has no dependencies! Bailing out Greece." format(useFile name))
             return
@@ -102,9 +109,7 @@ Sam: class {
     promote: func (useFile: UseFile) {
         log("Promoting %s" format(useFile name))
 
-        dir := File new(useFile path) getAbsoluteFile() parent()
-        repo := GitRepo new(dir getPath())
-        repo promote()
+        useFile repo() promote()
     }
 
     getUseFile: func (args: ArrayList<String>) -> UseFile {
@@ -141,6 +146,7 @@ UseFile: class {
 
     path: String
     name: String
+    dir: String
 
     props := HashMap<String, String> new()
     deps := ArrayList<String> new()
@@ -148,6 +154,7 @@ UseFile: class {
     init: func (=path) {
         f := File new(path)
         name = f name()[0..-5]
+        dir = File new(path) getAbsoluteFile() parent() getPath()
 
         parse()
     }
@@ -175,6 +182,10 @@ UseFile: class {
         if (requires) {
             deps addAll(requires split(',', false) map (|dep| dep trim(" \t")))
         }
+    }
+
+    repo: func -> GitRepo {
+        GitRepo new(dir)
     }
 
 }
