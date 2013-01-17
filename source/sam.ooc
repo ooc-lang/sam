@@ -33,7 +33,7 @@ Sam: class {
         try {
             runCommand(command, args)
         } catch (e: Exception) {
-            log("We've had errors: %s" format(e message))
+            log("We've had errors: %s", e message)
         }
     }
 
@@ -48,7 +48,7 @@ Sam: class {
             case "promote" =>
                 promote(getUseFile(args))
             case =>
-                log("Unknown command: %s" format(command))
+                log("Unknown command: %s", command)
                 usage()
                 exit(1)
         }
@@ -70,16 +70,16 @@ Sam: class {
     }
 
     update: func {
-        log("Pulling repository %s" format(home path))
+        log("Pulling repository %s", home path)
         GitRepo new(home path) pull()
     }
 
     get: func (useFile: UseFile) {
-        log("Processing %s" format(useFile name))
+        log("[%s]", useFile name)
         useFile repo() pull()
 
         if (useFile deps empty?()) {
-            log("%s has no dependencies! Our work here is done." format(useFile name))
+            log("%s has no dependencies! Our work here is done.", useFile name)
             return
         }
 
@@ -91,11 +91,11 @@ Sam: class {
     }
 
     status: func (useFile: UseFile) {
-        log("Processing %s" format(useFile name))
+        log("[%s]", useFile name)
         useFile repo() status()
 
         if (useFile deps empty?()) {
-            log("%s has no dependencies! Bailing out Greece." format(useFile name))
+            log("%s has no dependencies. Our work here is done.", useFile name)
             return
         }
 
@@ -107,7 +107,7 @@ Sam: class {
     }
 
     promote: func (useFile: UseFile) {
-        log("Promoting %s" format(useFile name))
+        log("Promoting %s", useFile name)
 
         useFile repo() promote()
     }
@@ -138,6 +138,10 @@ Sam: class {
 
     log: func (s: String) {
         "%s" printfln(s)
+    }
+
+    log: func ~var (s: String, args: ...) {
+        s printfln(args)
     }
     
 }
@@ -438,7 +442,7 @@ ActionTask: class {
     }
 
     process: func (pool: ActionPool) {
-        sam log("Processing %s (required by %s)" format(name, parent))
+        sam log("[%s => %s]", parent, name)
 
         f := Formula new(sam, name)
         url := f origin
@@ -467,7 +471,7 @@ ActionTask: class {
             if (repo exists?()) {
                 repo status()
             } else {
-                sam log("Repository %s doesn't exist!" format(repo dir))
+                sam log("Repository %s doesn't exist!", repo dir)
                 return
             }
 
