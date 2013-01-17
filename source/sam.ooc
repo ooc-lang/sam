@@ -17,10 +17,10 @@ Sam: class {
         execFile := File new(args[0])
 
         try {
-            home = execFile getAbsoluteFile() parent()
+            home = execFile getAbsoluteFile() parent
         } catch (e: Exception) {
-            execFile2 := ShellUtils findExecutable(execFile getPath(), true)
-            home = execFile2 getAbsoluteFile() parent()
+            execFile2 := ShellUtils findExecutable(execFile path, true)
+            home = execFile2 getAbsoluteFile() parent
         }
 
         if (args size <= 1) {
@@ -129,8 +129,8 @@ Sam: class {
     firstUseFilePath: func -> String {
         children := File new(".") getChildren()
         for (c in children) {
-            if (c name() endsWith?(".use")) {
-                return c getPath()
+            if (c name endsWith?(".use")) {
+                return c path
             }
         }
         null
@@ -153,8 +153,8 @@ UseFile: class {
 
     init: func (=path) {
         f := File new(path)
-        name = f name()[0..-5]
-        dir = File new(path) getAbsoluteFile() parent() getPath()
+        name = f name[0..-5]
+        dir = File new(path) getAbsoluteFile() parent path
 
         parse()
     }
@@ -165,8 +165,8 @@ UseFile: class {
 
         for (dir in dirs) {
             for (child in dir getChildren()) {
-                if (child name() == fileName) {
-                    return This new(child getPath())
+                if (child name == fileName) {
+                    return This new(child path)
                 }
             }
         }
@@ -245,7 +245,7 @@ GitRepo: class {
                filter(|line| !line empty?()) \
                map(|line| " > " + line) \
                join("\n") \
-               println()
+               print()
     }
 
     pull: func {
@@ -383,7 +383,7 @@ GitRepo: class {
 
     gitPath: static func -> String {
         if (!GIT_PATH) {
-            GIT_PATH = ShellUtils findExecutable("git", true) getPath()
+            GIT_PATH = ShellUtils findExecutable("git", true) path
         }
         GIT_PATH
     }
@@ -444,7 +444,7 @@ ActionTask: class {
         url := f origin
 
         dirName := GitRepo dirName(url)
-        repo := GitRepo new(File new(GitRepo oocLibs(), dirName) getPath(), url)
+        repo := GitRepo new(File new(GitRepo oocLibs(), dirName) path, url)
 
         doGet := func {
             if (repo exists?()) {
@@ -531,7 +531,7 @@ Formula: class {
 
     init: func (=sam, =name) {
         file := File new(File new(sam home, "library"), "%s.yml" format(name))
-        path = file getPath()
+        path = file path
 
         if (!file exists?()) {
             SamException new("Unknown formula: %s (tried %s)" format(name, path)) throw()
