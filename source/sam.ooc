@@ -244,12 +244,15 @@ GitRepo: class {
     }
     
     printOutput: func (output: String) {
-        output split('\n', false) \
-               map(|line| line trim("\t ")) \
-               filter(|line| !line empty?()) \
-               map(|line| " > " + line) \
-               join("\n") \
-               print()
+        formatted := output split('\n', false) \
+                     map(|line| line trim("\t ")) \
+                     filter(|line| !line empty?()) \
+                     map(|line| " > " + line) \
+                     join("\n") \
+                     trim("\n")
+        if (!formatted empty?()) {
+            formatted println()
+        }
     }
 
     pull: func {
