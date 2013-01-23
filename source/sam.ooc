@@ -1,5 +1,5 @@
 
-import structs/[ArrayList, HashMap]
+import structs/[ArrayList, List, HashMap]
 import io/[File, FileReader]
 import os/[Process, ShellUtils, Env]
 import text/StringTokenizer
@@ -42,7 +42,8 @@ Sam: class {
             case "update" =>
                 update()
             case "get" =>
-                get(getUseFile(args))
+                doSelf := !(args contains?("--no-self"))
+                get(getUseFile(args), doSelf)
             case "status" =>
                 status(getUseFile(args))
             case "promote" =>
@@ -74,9 +75,11 @@ Sam: class {
         GitRepo new(home path) pull()
     }
 
-    get: func (useFile: UseFile) {
-        log("[%s]", useFile name)
-        useFile repo() pull()
+    get: func (useFile: UseFile, doSelf: Bool) {
+        if (doSelf) {
+            log("[%s]", useFile name)
+            useFile repo() pull()
+        }
 
         if (useFile deps empty?()) {
             log("%s has no dependencies! Our work here is done.", useFile name)
@@ -112,7 +115,8 @@ Sam: class {
         useFile repo() promote()
     }
 
-    getUseFile: func (args: ArrayList<String>) -> UseFile {
+    getUseFile: func (givenArgs: ArrayList<String>) -> UseFile {
+        args := givenArgs filter(|arg| !arg startsWith?("--"))
         if (args size > 2) {
             UseFile new(args[2])
         } else {
