@@ -12,15 +12,16 @@ main: func (args: ArrayList<String>) {
 Sam: class {
 
     home: File
+    VERSION := "0.1.1"
 
     parseArgs: func (args: ArrayList<String>) {
         execFile := File new(args[0])
 
         try {
-            home = execFile getAbsoluteFile() parent
-        } catch (e: Exception) {
-            execFile2 := ShellUtils findExecutable(execFile path, true)
+            execFile2 := ShellUtils findExecutable(execFile name, true)
             home = execFile2 getAbsoluteFile() parent
+        } catch (e: Exception) {
+            home = execFile getAbsoluteFile() parent
         }
 
         if (args size <= 1) {
@@ -58,6 +59,8 @@ Sam: class {
     }
 
     usage: func {
+        log("sam version %s", VERSION)
+        log(" ")
         log("Usage: sam [update|get|status|promote]")
         log(" ")
         log("Commands")
