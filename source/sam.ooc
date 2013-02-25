@@ -44,6 +44,8 @@ Sam: class {
             case "get" =>
                 doSelf := !(args contains?("--no-self"))
                 get(getUseFile(args), doSelf)
+            case "clone" =>
+                clone(getRepoName(args))
             case "status" =>
                 status(getUseFile(args))
             case "promote" =>
@@ -63,6 +65,7 @@ Sam: class {
         log("  * get [USEFILE]: clone and/or pull all dependencies")
         log("  * status [USEFILE]: display short git status of all dependencies")
         log("  * promote [USEFILE]: replace read-only github url with a read-write one for given use file")
+        log("  * clone [REPONAME]: clone a repository by its formula name")
         log(" ")
         log("Note: All USEFILE arguments are optional. By default, the")
         log("first .use file of the current directory is used")
@@ -93,6 +96,16 @@ Sam: class {
         pp run()
     }
 
+    clone: func (name: String) {
+        log("[%s]", name)
+        f := Formula new(this, name)
+        url := f origin
+        repo := GitRepo new(File new(GitRepo oocLibs(), f name) path, url)
+        repo clone()
+
+        log("Cloned %s into %s", url, repo dir)
+    }
+
     status: func (useFile: UseFile) {
         log("[%s]", useFile name)
         useFile repo() status()
@@ -115,8 +128,12 @@ Sam: class {
         useFile repo() promote()
     }
 
-    getUseFile: func (givenArgs: ArrayList<String>) -> UseFile {
-        args := givenArgs filter(|arg| !arg startsWith?("--"))
+    filterArgs: func (givenArgs: List<String>) -> List<String> {
+        givenArgs filter(|arg| !arg startsWith?("--"))
+    }
+
+    getUseFile: func (givenArgs: List<String>) -> UseFile {
+        args := filterArgs(givenArgs)
         if (args size > 2) {
             UseFile new(args[2])
         } else {
@@ -128,6 +145,16 @@ Sam: class {
                 exit(1)
             }
         }
+    }
+
+    getRepoName: func (givenArgs: List<String>) -> String {
+        args := filterArgs(givenArgs)
+        if (args size > 2) {
+            return args[2]
+        }
+
+        log("No repo name specified. Adios!")
+        exit(1)
     }
 
     firstUseFilePath: func -> String {

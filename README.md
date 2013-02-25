@@ -77,6 +77,7 @@ sam assumes a few things:
     get in case no .use file is specified.
   * `sam promote [USEFILE]`: replace a read-only GitHub url (https/git)
     with a read-write GitHub url (ssh)
+  * `sam clone [REPONAME]`: clone a repository by its formula name.
 
 ### FAQ
 
