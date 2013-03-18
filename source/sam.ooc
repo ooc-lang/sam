@@ -110,8 +110,9 @@ Sam: class {
     }
 
     status: func (useFile: UseFile) {
-        log("[%s]", useFile name)
-        useFile repo() status()
+        repo := useFile repo()
+        log("[%s:%s]", useFile name, repo getBranch())
+        repo status()
 
         if (useFile deps empty?()) {
             log("%s has no dependencies. Our work here is done.", useFile name)
@@ -310,6 +311,17 @@ GitRepo: class {
         }
     }
 
+    getBranch: func -> String {
+        p := Process new([gitPath(), "rev-parse", "--abbrev-ref", "HEAD"])
+        p setCwd(dir)
+        (output, exitCode) := p getOutput()
+        
+        if (exitCode != 0) {
+            GitException new("Failed to get status of repository %s" format(dir)) throw()
+        }
+        return output trim(" \t\r\n")
+    }
+
     status: func {
         p := Process new([gitPath(), "status", "--short"])
         p setCwd(dir)
@@ -479,13 +491,13 @@ ActionTask: class {
     }
 
     process: func (pool: ActionPool) {
-        sam log("[%s => %s]", parent, name)
-
         f := Formula new(sam, name)
         url := f origin
 
         dirName := GitRepo dirName(url)
         repo := GitRepo new(File new(GitRepo oocLibs(), dirName) path, url)
+
+        sam log("[%s:%s] (<= %s)", name, repo getBranch(), parent)
 
         doGet := func {
             if (repo exists?()) {
