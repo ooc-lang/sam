@@ -101,15 +101,16 @@ Sam: class {
     }
 
     clone: func (name: String, withDeps: Bool) {
-        log("[%s]", name)
         f := Formula new(this, name)
         url := f origin
         repo := GitRepo new(File new(GitRepo oocLibs(), f name) path, url)
         
         if(repo exists?()) {
+            log("[%s:%s]", name, repo getBranch())
             log("Repository %s exists already. Pulling...", repo dir)
             repo pull()
         } else {
+            log("[%s]", name)
             repo clone()
             log("Cloned %s into %s", url, repo dir)
         }
