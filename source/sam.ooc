@@ -46,7 +46,8 @@ Sam: class {
                 doSelf := !(args contains?("--no-self"))
                 get(getUseFile(args), doSelf)
             case "clone" =>
-                clone(getRepoName(args))
+                withDeps := !(args contains?("--no-deps"))
+                clone(getRepoName(args), withDeps)
             case "status" =>
                 status(getUseFile(args))
             case "promote" =>
@@ -68,7 +69,7 @@ Sam: class {
         log("  * get [USEFILE]: clone and/or pull all dependencies")
         log("  * status [USEFILE]: display short git status of all dependencies")
         log("  * promote [USEFILE]: replace read-only github url with a read-write one for given use file")
-        log("  * clone [REPONAME]: clone a repository by its formula name")
+        log("  * clone [--no-deps] [REPONAME]: clone a repository by its formula name")
         log(" ")
         log("Note: All USEFILE arguments are optional. By default, the")
         log("first .use file of the current directory is used")
@@ -99,14 +100,24 @@ Sam: class {
         pp run()
     }
 
-    clone: func (name: String) {
-        log("[%s]", name)
+    clone: func (name: String, withDeps: Bool) {
         f := Formula new(this, name)
         url := f origin
         repo := GitRepo new(File new(GitRepo oocLibs(), f name) path, url)
-        repo clone()
+        
+        if(repo exists?()) {
+            log("[%s:%s]", name, repo getBranch())
+            log("Repository %s exists already. Pulling...", repo dir)
+            repo pull()
+        } else {
+            log("[%s]", name)
+            repo clone()
+            log("Cloned %s into %s", url, repo dir)
+        }
 
-        log("Cloned %s into %s", url, repo dir)
+        if (withDeps) {
+            get(UseFile new("%s/%s.use" format(repo dir, name)), false)
+        }
     }
 
     status: func (useFile: UseFile) {
