@@ -12,7 +12,7 @@ main: func (args: ArrayList<String>) {
 Sam: class {
 
     home: File
-    VERSION := "0.1.1"
+    VERSION := "0.2.0"
 
     parseArgs: func (args: ArrayList<String>) {
         execFile := File new(args[0])
@@ -80,6 +80,10 @@ Sam: class {
     update: func {
         log("Pulling repository %s", home path)
         GitRepo new(home path) pull()
+        log("Recompiling sam")
+        rock := Rock new(home path)
+        rock clean()
+        rock compile()
     }
 
     get: func (useFile: UseFile, doSelf: Bool) {
@@ -273,20 +277,12 @@ GitException: class extends Exception {
 
 }
 
-GitRepo: class {
-
-    GIT_PATH: static String = null
-    OOC_LIBS: static String = null
+CLITool: class {
 
     dir: String
-    url: String
 
-    init: func (=dir, =url) {
+    init: func (=dir) {
         assert (dir != null)
-    }
-
-    init: func ~noUrl (.dir) {
-        init(dir, "")
     }
     
     printOutput: func (output: String) {
@@ -299,6 +295,23 @@ GitRepo: class {
         if (!formatted empty?()) {
             formatted println()
         }
+    }
+
+}
+
+GitRepo: class extends CLITool {
+
+    GIT_PATH: static String = null
+    OOC_LIBS: static String = null
+
+    url: String
+
+    init: func (.dir, =url) {
+        super(dir)
+    }
+
+    init: func ~noUrl (.dir) {
+        init(dir, "")
     }
 
     pull: func {
@@ -612,6 +625,45 @@ Formula: class {
         }
 
         origin = props get("Origin")
+    }
+
+}
+
+Rock: class extends CLITool {
+
+    ROCK_PATH: static String = null
+
+    init: func (=dir) {
+        assert (dir != null)
+    }
+
+    clean: func {
+        p := Process new([rockPath(), "-x"])
+        p setCwd(dir)
+        (output, exitCode) := p getOutput()
+        printOutput(output)
+        
+        if (exitCode != 0) {
+            GitException new("Failed to run rock -x in %s" format(dir)) throw()
+        }
+    }
+
+    compile: func {
+        p := Process new([rockPath()])
+        p setCwd(dir)
+        (output, exitCode) := p getOutput()
+        printOutput(output)
+        
+        if (exitCode != 0) {
+            GitException new("Failed to run rock in %s" format(dir)) throw()
+        }
+    }
+
+    rockPath: static func -> String {
+        if (!ROCK_PATH) {
+            ROCK_PATH = ShellUtils findExecutable("rock", true) path
+        }
+        ROCK_PATH
     }
 
 }
