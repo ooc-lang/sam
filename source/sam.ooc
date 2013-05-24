@@ -46,7 +46,7 @@ Sam: class {
                 doSelf := !(args contains?("--no-self"))
                 get(getUseFile(args), doSelf)
             case "clone" =>
-                withDeps := args contains?("--with-deps")
+                withDeps := !(args contains?("--no-deps"))
                 clone(getRepoName(args), withDeps)
             case "status" =>
                 status(getUseFile(args))
@@ -69,7 +69,7 @@ Sam: class {
         log("  * get [USEFILE]: clone and/or pull all dependencies")
         log("  * status [USEFILE]: display short git status of all dependencies")
         log("  * promote [USEFILE]: replace read-only github url with a read-write one for given use file")
-        log("  * clone [--with-deps] [REPONAME]: clone a repository by its formula name")
+        log("  * clone [--no-deps] [REPONAME]: clone a repository by its formula name")
         log(" ")
         log("Note: All USEFILE arguments are optional. By default, the")
         log("first .use file of the current directory is used")
