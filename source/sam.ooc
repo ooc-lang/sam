@@ -1,7 +1,7 @@
 
 import structs/[ArrayList, List, HashMap]
 import io/[File, FileReader]
-import os/[Process, ShellUtils, Env]
+import os/[Process, ShellUtils, Env, Pipe, PipeReader]
 import text/StringTokenizer
 
 main: func (args: ArrayList<String>) {
@@ -166,10 +166,11 @@ Sam: class {
 
             true
         )
+        println()
     }
 
     doTest: func (cacheDir: File, repoDir: File, oocFile: File) {
-        log("Running %s" format(oocFile rebase(repoDir) path))
+        log(" > Running %s" format(oocFile path))
 
         File new(cacheDir, "test.use") write(
             "SourcePath: %s\n" format(oocFile parent path) +
@@ -179,12 +180,21 @@ Sam: class {
         rock := Rock new(cacheDir path)
         rock quiet = true
         rock fatal = false
-        rock compile(["-o=test"] as ArrayList<String>)
+        (output, exitCode) := rock compile(["-o=test"] as ArrayList<String>)
 
-        exec := AnyExecutable new(cacheDir path, File new(cacheDir, "test"))
-        exec quiet = true
-        exec fatal = false
-        exec run()
+        if (exitCode == 0) {
+            exec := AnyExecutable new(cacheDir path, File new(cacheDir, "test"))
+            exec quiet = true
+            exec fatal = false
+            (execOutput, execExitCode) := exec run()
+            if (execExitCode == 0) {
+                "All good" println()
+            } else {
+                "Failed" println()
+            }
+        } else {
+            "Errored" println()
+        }
 
         system("rm -rf %s" format(cacheDir path))
     }
@@ -348,6 +358,7 @@ CLITool: class {
     }
 
     launch: func (p: Process, message: String) -> (String, Int) {
+        p stdErr = Pipe new()
         (output, exitCode) := p getOutput()
 
         if (!quiet) {
@@ -715,7 +726,9 @@ Rock: class extends CLITool {
         
         p := Process new(rockArgs)
         p setCwd(dir)
-        launch(p, "Failed to use rock to compile in %s" format(dir))
+        message := "Failed to use rock to compile in %s" format(dir)
+        (output, exitCode) := launch(p, message)
+        (output, exitCode)
     }
 
     rockPath: static func -> String {
@@ -743,7 +756,9 @@ AnyExecutable: class extends CLITool {
         p := Process new([file path])
         p setCwd(dir)
 
-        launch(p, "Failed to launch %s in %s" format(file name, dir))
+        message := "Failed to launch %s in %s" format(file name, dir)
+        (output, exitCode) := launch(p, message)
+        (output, exitCode)
     }
 
 }
