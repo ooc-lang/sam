@@ -52,6 +52,8 @@ Sam: class {
                 status(getUseFile(args))
             case "promote" =>
                 promote(getUseFile(args))
+            case "test" =>
+                test(args)
             case =>
                 log("Unknown command: %s", command)
                 usage()
@@ -139,6 +141,44 @@ Sam: class {
             pp add(useFile name, dep)
         }
         pp run()
+    }
+
+    test: func (args: List<String>) {
+        useFile := getUseFile(args)
+        repo := useFile repo()
+
+        basedir := File new(repo dir, "test")
+        if (!basedir exists?()) {
+            log("No 'test' directory for %s. Our work here is done!", useFile name)
+            return
+        }
+
+        log("Running tests for %s:%s", useFile name, repo getBranch())
+        cacheDir := File new(repo dir, ".sam-cache")
+        cacheDir mkdirs()
+
+        basedir walk(|f|
+            if (f getName() toLower() endsWith?(".ooc")) {
+                doTest(cacheDir, f getAbsoluteFile())
+            }
+
+            true
+        )
+    }
+
+    doTest: func (cacheDir: File, oocFile: File) {
+        File new(cacheDir, "test.use") write(
+            "SourcePath: %s\n" format(oocFile parent path) +
+            "Main: %s\n" format(oocFile name)
+        )
+
+        rock := Rock new(cacheDir path)
+        rock compile(["-o=test"] as ArrayList<String>)
+
+        exec := AnyExecutable new(cacheDir path, File new(cacheDir, "test"))
+        exec run()
+
+        system("rm -rf %s" format())
     }
 
     promote: func (useFile: UseFile) {
@@ -648,8 +688,13 @@ Rock: class extends CLITool {
         }
     }
 
-    compile: func {
-        p := Process new([rockPath()])
+    compile: func (args: List<String> = null) {
+        rockArgs := [rockPath()] as ArrayList
+        if (args) {
+            rockArgs addAll(args)
+        }
+
+        p := Process new(rockArgs)
         p setCwd(dir)
         (output, exitCode) := p getOutput()
         printOutput(output)
@@ -668,4 +713,31 @@ Rock: class extends CLITool {
 
 }
 
+AnyExecutable: class extends CLITool {
+
+    file: File
+    
+    init: func (.dir, =file) {
+        super(dir)
+
+        if (!file exists?()) {
+            GitException new("Tried to launch nonexistent executable %s" format(file path)) throw()
+        }
+    }
+
+    run: func {
+        p := Process new([file path])
+        p setCwd(dir)
+        (output, exitCode) := p getOutput()
+        printOutput(output)
+
+        if (exitCode != 0) {
+            GitException new("Failed to run %s in %s" format(file path, dir)) throw()
+        }
+    }
+
+}
+
+// hackety hack shamefully hidden here.
+system: extern func (command: CString)
 
