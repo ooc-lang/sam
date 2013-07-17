@@ -64,7 +64,7 @@ Sam: class {
     usage: func {
         log("sam version %s", VERSION)
         log(" ")
-        log("Usage: sam [update|get|status|promote]")
+        log("Usage: sam [update|get|status|promote|clone|test]")
         log(" ")
         log("Commands")
         log("  * update: update sam's grimoir of formulas")
@@ -72,6 +72,7 @@ Sam: class {
         log("  * status [USEFILE]: display short git status of all dependencies")
         log("  * promote [USEFILE]: replace read-only github url with a read-write one for given use file")
         log("  * clone [--no-deps] [REPONAME]: clone a repository by its formula name")
+        log("  * test [--test=FILE.ooc] [USEFILE]: run all tests or a single specified test")
         log(" ")
         log("Note: All USEFILE arguments are optional. By default, the")
         log("first .use file of the current directory is used")
@@ -167,6 +168,8 @@ Sam: class {
     }
 
     doTest: func (cacheDir: File, oocFile: File) {
+        log("Running %s" format(oocFile path))
+
         File new(cacheDir, "test.use") write(
             "SourcePath: %s\n" format(oocFile parent path) +
             "Main: %s\n" format(oocFile name)
