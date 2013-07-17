@@ -12,7 +12,7 @@ main: func (args: ArrayList<String>) {
 Sam: class {
 
     home: File
-    VERSION := "0.3.0"
+    VERSION := "0.3.1"
 
     parseArgs: func (args: ArrayList<String>) {
         execFile := File new(args[0])
@@ -155,20 +155,21 @@ Sam: class {
         }
 
         log("Running tests for %s:%s", useFile name, repo getBranch())
-        cacheDir := File new(repo dir, ".sam-cache")
+        repoDir := File new(repo dir)
+        cacheDir := File new(repoDir, ".sam-cache")
 
         basedir walk(|f|
             if (f getName() toLower() endsWith?(".ooc")) {
                 cacheDir mkdirs()
-                doTest(cacheDir, f getAbsoluteFile())
+                doTest(cacheDir, repoDir, f getAbsoluteFile())
             }
 
             true
         )
     }
 
-    doTest: func (cacheDir: File, oocFile: File) {
-        log("Running %s" format(oocFile path))
+    doTest: func (cacheDir: File, repoDir: File, oocFile: File) {
+        log("Running %s" format(oocFile rebase(repoDir) path))
 
         File new(cacheDir, "test.use") write(
             "SourcePath: %s\n" format(oocFile parent path) +
