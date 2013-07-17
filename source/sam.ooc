@@ -177,9 +177,13 @@ Sam: class {
         )
 
         rock := Rock new(cacheDir path)
+        rock quiet = true
+        rock fatal = false
         rock compile(["-o=test"] as ArrayList<String>)
 
         exec := AnyExecutable new(cacheDir path, File new(cacheDir, "test"))
+        exec quiet = true
+        exec fatal = false
         exec run()
 
         system("rm -rf %s" format(cacheDir path))
@@ -324,6 +328,8 @@ GitException: class extends Exception {
 CLITool: class {
 
     dir: String
+    quiet := false
+    fatal := true
 
     init: func (=dir) {
         assert (dir != null)
@@ -341,6 +347,19 @@ CLITool: class {
         }
     }
 
+    launch: func (p: Process, message: String) -> (String, Int) {
+        (output, exitCode) := p getOutput()
+
+        if (!quiet) {
+            printOutput(output)
+        }
+        
+        if (fatal && exitCode != 0) {
+            GitException new(message) throw()
+        }
+
+        (output, exitCode)
+    }
 }
 
 GitRepo: class extends CLITool {
@@ -684,28 +703,19 @@ Rock: class extends CLITool {
     clean: func {
         p := Process new([rockPath(), "-x"])
         p setCwd(dir)
-        (output, exitCode) := p getOutput()
-        printOutput(output)
-        
-        if (exitCode != 0) {
-            GitException new("Failed to run rock -x in %s" format(dir)) throw()
-        }
+
+        launch(p, "Failed to run rock -x in %s" format(dir))
     }
 
-    compile: func (args: List<String> = null) {
+    compile: func (args: List<String> = null) -> (String, Int) {
         rockArgs := [rockPath()] as ArrayList
         if (args) {
             rockArgs addAll(args)
         }
-
+        
         p := Process new(rockArgs)
         p setCwd(dir)
-        (output, exitCode) := p getOutput()
-        printOutput(output)
-        
-        if (exitCode != 0) {
-            GitException new("Failed to run rock in %s" format(dir)) throw()
-        }
+        launch(p, "Failed to use rock to compile in %s" format(dir))
     }
 
     rockPath: static func -> String {
@@ -729,15 +739,11 @@ AnyExecutable: class extends CLITool {
         }
     }
 
-    run: func {
+    run: func -> (String, Int) {
         p := Process new([file path])
         p setCwd(dir)
-        (output, exitCode) := p getOutput()
-        printOutput(output)
 
-        if (exitCode != 0) {
-            GitException new("Failed to run %s in %s" format(file path, dir)) throw()
-        }
+        launch(p, "Failed to launch %s in %s" format(file name, dir))
     }
 
 }
