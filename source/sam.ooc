@@ -12,7 +12,7 @@ main: func (args: ArrayList<String>) {
 Sam: class {
 
     home: File
-    VERSION := "0.2.0"
+    VERSION := "0.3.0"
 
     parseArgs: func (args: ArrayList<String>) {
         execFile := File new(args[0])
