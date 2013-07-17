@@ -155,10 +155,10 @@ Sam: class {
 
         log("Running tests for %s:%s", useFile name, repo getBranch())
         cacheDir := File new(repo dir, ".sam-cache")
-        cacheDir mkdirs()
 
         basedir walk(|f|
             if (f getName() toLower() endsWith?(".ooc")) {
+                cacheDir mkdirs()
                 doTest(cacheDir, f getAbsoluteFile())
             }
 
@@ -178,7 +178,7 @@ Sam: class {
         exec := AnyExecutable new(cacheDir path, File new(cacheDir, "test"))
         exec run()
 
-        system("rm -rf %s" format())
+        system("rm -rf %s" format(cacheDir path))
     }
 
     promote: func (useFile: UseFile) {
