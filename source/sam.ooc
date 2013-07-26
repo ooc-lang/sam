@@ -196,7 +196,7 @@ Sam: class {
         } else {
             "[ERR']" println()
 
-            Terminal setColor(Color red)
+            Terminal setFgColor(Color red)
             output println()
             Terminal reset()
         }
