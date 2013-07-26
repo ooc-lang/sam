@@ -1,7 +1,7 @@
 
 import structs/[ArrayList, List, HashMap]
 import io/[File, FileReader]
-import os/[Process, ShellUtils, Env, Pipe, PipeReader]
+import os/[Process, ShellUtils, Env, Pipe, PipeReader, Terminal]
 import text/StringTokenizer
 
 main: func (args: ArrayList<String>) {
@@ -148,20 +148,20 @@ Sam: class {
         useFile := getUseFile(args)
         repo := useFile repo()
 
-        basedir := File new(repo dir, "test")
-        if (!basedir exists?()) {
+        repoDir := File new(repo dir)
+        testDir := File new(repoDir, "test")
+        if (!testDir exists?()) {
             log("No 'test' directory for %s. Our work here is done!", useFile name)
             return
         }
 
         log("Running tests for %s:%s", useFile name, repo getBranch())
-        repoDir := File new(repo dir)
         cacheDir := File new(repoDir, ".sam-cache")
 
-        basedir walk(|f|
+        testDir walk(|f|
             if (f getName() toLower() endsWith?(".ooc")) {
                 cacheDir mkdirs()
-                doTest(cacheDir, repoDir, f getAbsoluteFile())
+                doTest(cacheDir, testDir, f getAbsoluteFile())
             }
 
             true
@@ -169,8 +169,9 @@ Sam: class {
         println()
     }
 
-    doTest: func (cacheDir: File, repoDir: File, oocFile: File) {
-        log(" > Running %s" format(oocFile path))
+    doTest: func (cacheDir: File, testDir: File, oocFile: File) {
+        testName := oocFile rebase(testDir) path
+        log(" > %s" format(testName))
 
         File new(cacheDir, "test.use") write(
             "SourcePath: %s\n" format(oocFile parent path) +
@@ -180,7 +181,7 @@ Sam: class {
         rock := Rock new(cacheDir path)
         rock quiet = true
         rock fatal = false
-        (output, exitCode) := rock compile(["-o=test"] as ArrayList<String>)
+        (output, exitCode) := rock compile(["-o=test", "-q"] as ArrayList<String>)
 
         if (exitCode == 0) {
             exec := AnyExecutable new(cacheDir path, File new(cacheDir, "test"))
@@ -188,12 +189,16 @@ Sam: class {
             exec fatal = false
             (execOutput, execExitCode) := exec run()
             if (execExitCode == 0) {
-                "All good" println()
+                "[ OK ]" println()
             } else {
-                "Failed" println()
+                "[FAIL]" println()
             }
         } else {
-            "Errored" println()
+            "[ERR']" println()
+
+            Terminal setColor(Color red)
+            output println()
+            Terminal reset()
         }
 
         system("rm -rf %s" format(cacheDir path))
