@@ -68,7 +68,7 @@ Sam: class {
         log(" ")
         log("Commands")
         log("  * update: update sam's grimoir of formulas")
-        log("  * get [USEFILE]: clone and/or pull all dependencies")
+        log("  * get [--no-self] [USEFILE]: clone and/or pull all dependencies (optionally excluding the current repository)")
         log("  * status [USEFILE]: display short git status of all dependencies")
         log("  * promote [USEFILE]: replace read-only github url with a read-write one for given use file")
         log("  * clone [--no-deps] [REPONAME]: clone a repository by its formula name")
