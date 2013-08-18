@@ -599,8 +599,12 @@ ActionTask: class {
 
         dirName := GitRepo dirName(url)
         repo := GitRepo new(File new(GitRepo oocLibs(), dirName) path, url)
+        repoName := name
+        if (repo exists?()) {
+          "%s:%s" format(name, repo getBranch())
+        }
 
-        sam log("[%s:%s] (<= %s)", name, repo getBranch(), parent)
+        sam log("[%s] (<= %s)", repoName, parent)
 
         doGet := func {
             if (repo exists?()) {
