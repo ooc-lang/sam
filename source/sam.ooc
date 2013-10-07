@@ -1,7 +1,7 @@
 
 import structs/[ArrayList, List, HashMap]
 import io/[File, FileReader]
-import os/[Process, ShellUtils, Env, Pipe, PipeReader, Terminal]
+import os/[Process, ShellUtils, Env, Pipe, Terminal]
 import text/StringTokenizer
 
 main: func (args: ArrayList<String>) {
