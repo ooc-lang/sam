@@ -1,4 +1,5 @@
 sam
 *.exe
+*.dSYM
 .libs
 rock_tmp
