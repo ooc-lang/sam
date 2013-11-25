@@ -22,7 +22,7 @@ main: func (args: ArrayList<String>) {
 Sam: class {
 
     home: File
-    VERSION := "0.5.0"
+    VERSION := "0.6.0"
 
     parseArgs: func (args: ArrayList<String>) {
         execFile := File new(args[0])
@@ -163,101 +163,12 @@ Sam: class {
         if (args size > 3) {
             testDir = File new(args[3])
         }
-
-        if (!testDir exists?()) {
-            log("Test directory '%s' doesn't exist. Our work here is done!", useFile name)
-            return
-        }
-
-        testDir = testDir getAbsoluteFile()
-
-        log("Running tests for %s:%s", useFile name, repo getBranch())
         cacheDir := File new(repoDir, ".sam-cache")
-        hardcoreCleanCacheDir(cacheDir)
 
-        testDir walk(|f|
-            if (f getName() toLower() endsWith?(".ooc")) {
-                cacheDir mkdirs()
-                doTest(cacheDir, testDir, f getAbsoluteFile())
-                cleanCacheDir(cacheDir)
-            }
-
-            true
-        )
-        println()
-    }
-
-    doTest: func (cacheDir: File, testDir: File, oocFile: File) {
-        // determine flags like shouldfail, shouldcrash, etc.
-        shouldfail := false
-        shouldcrash := false
-        lines := oocFile read() split("\n")
-        for (l in lines) {
-            if (l startsWith?("//!")) {
-                command := l[3..-1] trim()
-                match command {
-                    case "shouldfail"  => shouldfail = true
-                    case "shouldcrash" => shouldcrash = true
-                }
-            }
-        }
-
-        testName := oocFile rebase(testDir) path
-        log(" > %s" format(testName))
-
-        File new(cacheDir, "test.use") write(
-            "SourcePath: %s\n" format(oocFile parent path) +
-            "Main: %s\n" format(oocFile name)
-        )
-
-        rock := Rock new(cacheDir path)
-        rock quiet = true
-        rock fatal = false
-        (output, exitCode) := rock compile(["-o=test", "-q"] as ArrayList<String>)
-
-        if (exitCode == 0) {
-            if (shouldfail) {
-                "[FAIL] (compilation should have failed)" println()
-                return
-            }
-
-            exec := AnyExecutable new(cacheDir path, File new(cacheDir, "test"))
-            exec quiet = true
-            exec fatal = false
-            (execOutput, execExitCode) := exec run()
-            if (execExitCode == 0) {
-                if (shouldcrash) {
-                    "[FAIL] (should have crashed)" println()
-                } else {
-                    "[ OK ]" println()
-                }
-            } else {
-                if (shouldcrash) {
-                    "[ OK ]" println()
-                } else {
-                    "[FAIL]" println()
-                }
-            }
-        } else {
-            if (shouldfail) {
-                "[ OK ]" println()
-            } else {
-                "[ERR']" println()
-
-                Terminal setFgColor(Color red)
-                output println()
-                Terminal reset()
-            }
-        }
-    }
-
-    hardcoreCleanCacheDir: func (cacheDir: File) {
-        system("rm -rf %s" format(cacheDir path))
-    }
-
-    cleanCacheDir: func (cacheDir: File) {
-        system("rm -rf %s/.libs/test-* %s/.libs/ooc/test %s/rock_tmp/ooc/test" format(
-            cacheDir path, cacheDir path, cacheDir path))
+        suite := TestSuite new(this, useFile, testDir getAbsoluteFile(), cacheDir)
+        suite run()
+        ret := suite report()
+        exit(ret)
     }
 
     promote: func (useFile: UseFile) {
@@ -306,11 +217,25 @@ Sam: class {
     }
 
     log: func (s: String) {
-        "%s" printfln(s)
+        s println()
     }
 
     log: func ~var (s: String, args: ...) {
         s printfln(args)
+    }
+
+    ok: func (msg := "", type := " OK ") {
+        Terminal setFgColor(Color green)
+        text := "[%s] %s" format(type, msg)
+        log(text)
+        Terminal reset()
+    }
+
+    fail: func (msg := "", type := "FAIL") {
+        Terminal setFgColor(Color red)
+        text := "[%s] %s" format(type, msg)
+        log(text)
+        Terminal reset()
     }
 
 }
