@@ -111,8 +111,9 @@ script:
   - sam test
 ```
 
-If your program requires rock bleeding edge (as opposed to the last stable
-version), consider replacing `quick-rescue` by `rescue` in the file above.
+If your program requires a specific rock version (as opposed to the last stable
+version), consider adding `-b xxx` in the rock clone command above, where
+`xxx` is the rock branch corresponding to the version you're working with.
 
 ### FAQ
 
