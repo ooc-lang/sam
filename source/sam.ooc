@@ -12,7 +12,7 @@ main: func (args: ArrayList<String>) {
 Sam: class {
 
     home: File
-    VERSION := "0.3.3"
+    VERSION := "0.4.0"
 
     parseArgs: func (args: ArrayList<String>) {
         execFile := File new(args[0])
@@ -178,6 +178,20 @@ Sam: class {
     }
 
     doTest: func (cacheDir: File, testDir: File, oocFile: File) {
+        // determine flags like shouldfail, shouldcrash, etc.
+        shouldfail := false
+        shouldcrash := false
+        lines := oocFile read() split("\n")
+        for (l in lines) {
+            if (l startsWith?("//!")) {
+                command := l[3..-1] trim()
+                match command {
+                    case "shouldfail"  => shouldfail = true
+                    case "shouldcrash" => shouldcrash = true
+                }
+            }
+        }
+
         testName := oocFile rebase(testDir) path
         log(" > %s" format(testName))
 
@@ -192,21 +206,38 @@ Sam: class {
         (output, exitCode) := rock compile(["-o=test", "-q"] as ArrayList<String>)
 
         if (exitCode == 0) {
+            if (shouldfail) {
+                "[FAIL] (compilation should have failed)" println()
+                return
+            }
+
             exec := AnyExecutable new(cacheDir path, File new(cacheDir, "test"))
             exec quiet = true
             exec fatal = false
             (execOutput, execExitCode) := exec run()
             if (execExitCode == 0) {
-                "[ OK ]" println()
+                if (shouldcrash) {
+                    "[FAIL] (should have crashed)" println()
+                } else {
+                    "[ OK ]" println()
+                }
             } else {
-                "[FAIL]" println()
+                if (shouldcrash) {
+                    "[ OK ]" println()
+                } else {
+                    "[FAIL]" println()
+                }
             }
         } else {
-            "[ERR']" println()
+            if (shouldfail) {
+                "[ OK ]" println()
+            } else {
+                "[ERR']" println()
 
-            Terminal setFgColor(Color red)
-            output println()
-            Terminal reset()
+                Terminal setFgColor(Color red)
+                output println()
+                Terminal reset()
+            }
         }
     }
 
