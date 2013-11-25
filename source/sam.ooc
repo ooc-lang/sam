@@ -12,7 +12,7 @@ main: func (args: ArrayList<String>) {
 Sam: class {
 
     home: File
-    VERSION := "0.4.0"
+    VERSION := "0.4.1"
 
     parseArgs: func (args: ArrayList<String>) {
         execFile := File new(args[0])
@@ -163,7 +163,7 @@ Sam: class {
 
         log("Running tests for %s:%s", useFile name, repo getBranch())
         cacheDir := File new(repoDir, ".sam-cache")
-        cleanCacheDir(cacheDir)
+        hardcoreCleanCacheDir(cacheDir)
 
         testDir walk(|f|
             if (f getName() toLower() endsWith?(".ooc")) {
@@ -239,6 +239,10 @@ Sam: class {
                 Terminal reset()
             }
         }
+    }
+
+    hardcoreCleanCacheDir: func (cacheDir: File) {
+        system("rm -rf %s" format(cacheDir path))
     }
 
     cleanCacheDir: func (cacheDir: File) {
