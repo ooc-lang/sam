@@ -12,7 +12,7 @@ main: func (args: ArrayList<String>) {
 Sam: class {
 
     home: File
-    VERSION := "0.3.1"
+    VERSION := "0.3.2"
 
     parseArgs: func (args: ArrayList<String>) {
         execFile := File new(args[0])
@@ -150,13 +150,20 @@ Sam: class {
 
         repoDir := File new(repo dir)
         testDir := File new(repoDir, "test")
+        if (args size > 3) {
+            testDir = File new(args[3])
+        }
+
         if (!testDir exists?()) {
-            log("No 'test' directory for %s. Our work here is done!", useFile name)
+            log("Test directory '%s' doesn't exist. Our work here is done!", useFile name)
             return
         }
 
+        testDir = testDir getAbsoluteFile()
+
         log("Running tests for %s:%s", useFile name, repo getBranch())
         cacheDir := File new(repoDir, ".sam-cache")
+        system("rm -rf %s" format(cacheDir path))
 
         testDir walk(|f|
             if (f getName() toLower() endsWith?(".ooc")) {
