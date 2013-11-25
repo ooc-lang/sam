@@ -78,6 +78,41 @@ sam assumes a few things:
   * `sam promote [USEFILE]`: replace a read-only GitHub url (https/git)
     with a read-write GitHub url (ssh)
   * `sam clone [REPONAME]`: clone a repository by its formula name.
+  * `sam test [USEFILE] [TESTDIR]`: run a test suite
+
+### Testing
+
+When the `sam test` command is ran, sam will attempt to compile and run every
+.ooc file found in TESTDIR. By default, TESTDIR is the `test` directory found in
+the specified repository.
+
+Specifying a TESTDIR by hand might help with long test suite running times, by
+only running a handful of tests as needed.
+
+### Continuous Integration
+
+sam can be used to run tests on continuous integration servers, such as
+[Travis CI](https://travis-ci.org).
+
+It is in use, notably, by [rock itself](https://travis-ci.org/nddrylliog/rock/builds).
+
+An example .travis.yml is supplied here:
+
+```yaml
+before_script:
+  - sudo apt-get -y -qq install curl make libgc-dev
+  - export PATH=$PATH:$PWD/rock/bin:$PWD/sam
+  - git clone --depth=1 git://github.com/nddrylliog/rock.git 
+  - git clone --depth=1 git://github.com/nddrylliog/sam.git 
+  - (cd rock && make -s quick-rescue)
+  - (cd sam && rock -v)
+
+script:
+  - sam test
+```
+
+If your program requires rock bleeding edge (as opposed to the last stable
+version), consider replacing `quick-rescue` by `rescue` in the file above.
 
 ### FAQ
 
