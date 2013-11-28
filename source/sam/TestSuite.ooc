@@ -28,9 +28,10 @@ TestSuite: class {
     }
 
     run: func {
-        hardcoreCleanCacheDir(cacheDir)
-        sam log("Running tests for %s", useFile _)
+        cacheDir rm_rf()
+        sam log("Compiling sdk...", useFile _)
 
+        sam log("Running tests for %s", useFile _)
         testDir walk(|f|
             if (f getName() toLower() endsWith?(".ooc")) {
                 cacheDir mkdirs()
@@ -97,13 +98,12 @@ TestSuite: class {
         0
     }
 
-    hardcoreCleanCacheDir: func (cacheDir: File) {
-        system("rm -rf %s" format(cacheDir path))
-    }
-
     cleanCacheDir: func (cacheDir: File) {
-        system("rm -rf %s/.libs/test-* %s/.libs/ooc/test %s/rock_tmp/ooc/test" format(
-            cacheDir path, cacheDir path, cacheDir path))
+        File new(cacheDir, ".libs", "ooc", "test") rm_rf()
+        File new(cacheDir, "rock_tmp", "ooc", "test") rm_rf()
+
+        // needs globs to get rid of that one
+        system("rm -rf #{cacheDir path}/.libs/test-*")
     }
 
 }
