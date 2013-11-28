@@ -22,7 +22,7 @@ main: func (args: ArrayList<String>) {
 Sam: class {
 
     home: File
-    VERSION := "0.6.1"
+    VERSION := "0.7.0"
 
     parseArgs: func (args: ArrayList<String>) {
         execFile := File new(args[0])

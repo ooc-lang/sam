@@ -2,7 +2,7 @@
 // sdk
 import structs/[ArrayList]
 import io/[File]
-import os/[Terminal, Time]
+import os/[Terminal, Time, Env]
 import text/[StringTokenizer]
 
 // ours
@@ -27,14 +27,40 @@ TestSuite: class {
         }
     }
 
+    compileDeps: func {
+        oocLibs := Env["OOC_LIBS"]
+        if (!oocLibs) return
+
+        elements := oocLibs split(File pathDelimiter)
+        for (el in elements) {
+            sdkFile := File new(oocLibs) find("sdk.use")
+            if (sdkFile) {
+                sam log("Compiling sdk from #{sdkFile path}")
+                rock := Rock new(cacheDir path)
+                rock quiet = true
+                rock fatal = false
+
+                args := [sdkFile getAbsolutePath(), "-q"] as ArrayList<String>
+                (compileOutput, compileExitCode) := rock compile(args)
+
+                if (compileExitCode != 0) {
+                    sam log("Failed to compile SDK separately :(")
+                    sam log("Output:\n#{compileOutput}")
+                    sam log("Continuing...")
+                }
+            }
+        }
+    }
+
     run: func {
         cacheDir rm_rf()
-        sam log("Compiling sdk...", useFile _)
+        cacheDir mkdirs()
+
+        compileDeps()
 
         sam log("Running tests for %s", useFile _)
         testDir walk(|f|
             if (f getName() toLower() endsWith?(".ooc")) {
-                cacheDir mkdirs()
                 doTest(f getAbsoluteFile())
                 cleanCacheDir(cacheDir)
             }
