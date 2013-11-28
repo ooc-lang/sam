@@ -55,7 +55,12 @@ AnyExecutable: class extends CLITool {
         super(dir)
 
         if (!file exists?()) {
-            SamException new("Tried to launch nonexistent executable %s" format(file path)) throw()
+            exe := File new(file path + ".exe")
+            if (exe exists?()) {
+              this file = exe
+            } else {
+              SamException new("Tried to launch nonexistent executable %s" format(file path)) throw()
+            }
         }
     }
 
