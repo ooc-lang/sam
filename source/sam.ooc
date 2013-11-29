@@ -45,6 +45,7 @@ Sam: class {
             runCommand(command, args)
         } catch (e: Exception) {
             log("We've had errors: %s", e message)
+            exit(1)
         }
     }
 
