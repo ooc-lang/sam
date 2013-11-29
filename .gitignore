@@ -3,5 +3,6 @@ sam
 *.exe
 *.dSYM
 .libs
+.sam-cache
 rock_tmp
 callgrind.out.*
