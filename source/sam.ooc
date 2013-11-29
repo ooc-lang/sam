@@ -6,7 +6,8 @@ import os/[Process, ShellUtils, Env, Pipe, Terminal]
 import text/StringTokenizer
 
 // ours
-import sam/[Base, UseFile, GitRepo, CLITool, Formula, TestSuite, Rock]
+import sam/[Base, UseFile, GitRepo, CLITool, Formula, TestSuite,
+    Rock, Checker]
 
 /**
  * Entry point
@@ -22,15 +23,15 @@ main: func (args: ArrayList<String>) {
 Sam: class {
 
     home: File
-    VERSION := "0.7.0"
+    VERSION := "0.8.0"
 
     parseArgs: func (args: ArrayList<String>) {
         execFile := File new(args[0])
 
-        try {
-            execFile2 := ShellUtils findExecutable(execFile name, true)
+        execFile2 := ShellUtils findExecutable(execFile name, false)
+        if (execFile2) {
             home = execFile2 getAbsoluteFile() parent
-        } catch (e: Exception) {
+        } else {
             home = execFile getAbsoluteFile() parent
         }
 
@@ -65,6 +66,8 @@ Sam: class {
                 promote(getUseFile(args))
             case "test" =>
                 test(args)
+            case "check" =>
+                check(args)
             case =>
                 log("Unknown command: %s", command)
                 usage()
@@ -153,6 +156,17 @@ Sam: class {
             pp add(useFile name, dep)
         }
         pp run()
+    }
+
+    check: func (args: List<String>) {
+        if (args size < 3) {
+            raise("Usage: sam check FILE.ooc")
+        }
+
+        file := File new(args[2])
+        checker := Checker new(this, file)
+        ret := checker check()
+        exit(ret)
     }
 
     test: func (args: List<String>) {

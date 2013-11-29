@@ -6,26 +6,37 @@ import os/[Process, ShellUtils, Env, Pipe, Terminal]
 import text/StringTokenizer
 
 // ours
-import sam/[Base, GitRepo, PropReader]
+import sam/[Base, GitRepo, PropReader, PropWriter]
 
 /**
  * Represents a parsed .use file
  */
 UseFile: class {
 
-    path: String
+    file: File
+    path ::= file path
     name: String
     dir: String
 
     props := HashMap<String, String> new()
     deps := ArrayList<String> new()
 
-    init: func (=path) {
-        f := File new(path)
-        name = f name[0..-5]
-        dir = File new(path) getAbsoluteFile() parent path
+    init: func ~path (.path) {
+        init(File new(path))
+    }
+
+    init: func ~file (=file) {
+        name = file name[0..-5]
+        dir = file getAbsoluteFile() parent path
 
         parse()
+    }
+
+    init: func ~clone (original: This) {
+        file = File new(original file path)
+        dir = original dir
+        props = original props clone()
+        deps = original deps clone()
     }
 
     find: static func (name: String) -> This {
@@ -53,6 +64,11 @@ UseFile: class {
         }
     }
 
+    write: func (=file) {
+        dir = file parent path
+        PropWriter new(path, props)
+    }
+
     repo: func -> GitRepo {
         GitRepo new(dir)
     }
@@ -64,6 +80,10 @@ UseFile: class {
     _: String { get {
         toString()
     } }
+
+    clone: func -> This {
+        new(this)
+    }
 
 }
 
