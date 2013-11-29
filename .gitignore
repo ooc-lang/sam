@@ -4,3 +4,4 @@ sam
 *.dSYM
 .libs
 rock_tmp
+callgrind.out.*
