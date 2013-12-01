@@ -4,17 +4,41 @@ import io/[File]
 import structs/[ArrayList]
 
 // sam
-import sam/[Base, UseFile, Rock], sam
+import sam/[Base, UseFile, Rock, Arguments]
+
+CheckMode: enum {
+    SYNTAX
+    CHECK
+    CODEGEN
+}
 
 Checker: class {
 
-    sam: Sam
+    args: Arguments
     useFile, customUseFile: UseFile
     oocFile: File
     sourcePath: File
     cacheDir: File
+    onlyparse := false
 
-    init: func (=sam, =oocFile) {
+    mode := CheckMode CHECK
+
+    init: func (=args) {
+        if (args size < 2) {
+            "Usage: sam check FILE.ooc" println()
+            exit(1)
+        }
+
+        if (args hasLong?("mode")) {
+            mode = match (args longs get("mode")) {
+                case "syntax"  => CheckMode SYNTAX
+                case "check"   => CheckMode CHECK
+                case "codegen" => CheckMode CODEGEN
+                case => mode
+            }
+        }
+
+        oocFile = File new(args[1])
     }
 
     check: func -> Int {
@@ -54,7 +78,12 @@ Checker: class {
         rock quiet = true
         rock fatal = false
 
-        args := [customUseFile file path, "-q", "--onlycheck"] as ArrayList<String>
+        args := [customUseFile file path, "-q"] as ArrayList<String>
+        match mode {
+            case CheckMode SYNTAX  => args add("--onlyparse")
+            case CheckMode CODEGEN => args add("--onlygen")
+            case                   => args add("--onlycheck")
+        }
         (compileOutput, compileExitCode) := rock compile(args)
 
         compileOutput print()

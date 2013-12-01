@@ -7,7 +7,7 @@ import text/StringTokenizer
 
 // ours
 import sam/[Base, UseFile, GitRepo, CLITool, Formula, TestSuite,
-    Rock, Checker]
+    Rock, Checker, Arguments]
 
 /**
  * Entry point
@@ -22,27 +22,21 @@ main: func (args: ArrayList<String>) {
  */
 Sam: class {
 
-    home: File
-    VERSION := "0.8.0"
+    args: Arguments
+    home ::= args home
+    VERSION := "0.9.0"
 
     init: func
 
-    parseArgs: func (args: ArrayList<String>) {
-        execFile := File new(args[0])
+    parseArgs: func (commandLine: ArrayList<String>) {
+        args = Arguments new(commandLine)
 
-        execFile2 := ShellUtils findExecutable(execFile name, false)
-        if (execFile2) {
-            home = execFile2 getAbsoluteFile() parent
-        } else {
-            home = execFile getAbsoluteFile() parent
-        }
-
-        if (args size <= 1) {
+        if (args size < 1) {
             usage()
             exit(1)
         }
 
-        command := args[1]
+        command := args[0]
 
         try {
             runCommand(command, args)
@@ -52,15 +46,15 @@ Sam: class {
         }
     }
 
-    runCommand: func (command: String, args: ArrayList<String>) {
+    runCommand: func (command: String, args: Arguments) {
         match (command) {
             case "update" =>
                 update()
             case "get" =>
-                doSelf := !(args contains?("--no-self"))
+                doSelf := !(args hasLong?("no-self"))
                 get(getUseFile(args), doSelf)
             case "clone" =>
-                withDeps := !(args contains?("--no-deps"))
+                withDeps := !(args hasLong?("no-deps"))
                 clone(getRepoName(args), withDeps)
             case "status" =>
                 status(getUseFile(args))
@@ -80,7 +74,7 @@ Sam: class {
     usage: func {
         log("sam version %s", VERSION)
         log(" ")
-        log("Usage: sam [update|get|status|promote|clone|test]")
+        log("Usage: sam [update|get|status|promote|clone|test|check]")
         log(" ")
         log("Commands")
         log("  * update: update sam's grimoir of formulas")
@@ -89,6 +83,7 @@ Sam: class {
         log("  * promote [USEFILE]: replace read-only github url with a read-write one for given use file")
         log("  * clone [--no-deps] [REPONAME]: clone a repository by its formula name")
         log("  * test [--test=FILE.ooc] [USEFILE]: run all tests or a single specified test")
+        log("  * check [--mode=MODE] FILE.ooc: run a 'syntax', 'check' (default) or 'codegen' check on the selected ooc file")
         log(" ")
         log("Note: All USEFILE arguments are optional. By default, the")
         log("first .use file of the current directory is used")
@@ -160,25 +155,20 @@ Sam: class {
         pp run()
     }
 
-    check: func (args: List<String>) {
-        if (args size < 3) {
-            raise("Usage: sam check FILE.ooc")
-        }
-
-        file := File new(args[2])
-        checker := Checker new(this, file)
+    check: func (args: Arguments) {
+        checker := Checker new(args)
         ret := checker check()
         exit(ret)
     }
 
-    test: func (args: List<String>) {
+    test: func (args: Arguments) {
         useFile := getUseFile(args)
         repo := useFile repo()
 
         repoDir := File new(repo dir)
         testDir := File new(repoDir, "test")
-        if (args size > 3) {
-            testDir = File new(args[3])
+        if (args size > 2) {
+            testDir = File new(args[2])
         }
         cacheDir := File new(repoDir, ".sam-cache")
 
@@ -194,14 +184,9 @@ Sam: class {
         useFile repo() promote()
     }
 
-    filterArgs: func (givenArgs: List<String>) -> List<String> {
-        givenArgs filter(|arg| !arg startsWith?("--"))
-    }
-
-    getUseFile: func (givenArgs: List<String>) -> UseFile {
-        args := filterArgs(givenArgs)
-        if (args size > 2) {
-            UseFile new(args[2])
+    getUseFile: func (args: Arguments) -> UseFile {
+        if (args size > 1) {
+            UseFile new(args[1])
         } else {
             firstUse := firstUseFilePath()
             if (firstUse) {
@@ -213,10 +198,9 @@ Sam: class {
         }
     }
 
-    getRepoName: func (givenArgs: List<String>) -> String {
-        args := filterArgs(givenArgs)
-        if (args size > 2) {
-            return args[2]
+    getRepoName: func (args: Arguments) -> String {
+        if (args size > 1) {
+            return args[1]
         }
 
         log("No repo name specified. Adios!")

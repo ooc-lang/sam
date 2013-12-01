@@ -52,7 +52,7 @@ For example, for sdl2, we have
 
   * name: sdl2
   * repo: https://github.com/geckojsc/ooc-sdl2.git
-  * repo structure: 
+  * repo structure:
       * README.md
       * sdl2.use
       * source
@@ -68,7 +68,7 @@ sam assumes a few things:
 
 ### Commands
 
-  * `sam update`: get the freshest formulas from sam git
+  * `sam update`: update sam and its grimoir of formulas
   * `sam get [USEFILE]`: install and/or upgrade all dependencies
     listed in the given .use file. If no .use file is given, sam
     will take the first one in the current directory.
@@ -79,6 +79,7 @@ sam assumes a few things:
     with a read-write GitHub url (ssh)
   * `sam clone [REPONAME]`: clone a repository by its formula name.
   * `sam test [USEFILE] [TESTDIR]`: run a test suite
+  * `sam check [--mode=MODE] FILE.ooc`: run various checks (syntax, check, codegen)
 
 ### Testing
 
@@ -88,6 +89,27 @@ the specified repository.
 
 Specifying a TESTDIR by hand might help with long test suite running times, by
 only running a handful of tests as needed.
+
+### Checking
+
+The `sam check` command is my attempt to free myself from the 'classpath hell'
+we have inherited from Java. Nowadays, most (if not all) projects have .use files
+with SourcePaths. However, rock is not smart enough to find out which .use file
+corresponds to a given .ooc file.
+
+In the case of text editors, one might want to run checks on a given file. sam check
+does exactly that. It'll go from parent folder to grandparent folders, finding
+the .use file to which the .ooc file belongs.
+
+There are three check modes:
+
+  * `syntax`: the fastest - rock just parses a single file and reports syntax errors
+    (missing braces, wrong string literal, invalid definitions, etc.)
+  * `check`: a good compromise - rock parses and resolves the whole project. It
+    reports everything `syntax` does, as well as type errors, unresolved symbols, etc.
+    Much slower than `syntax`, but also much more useful.
+  * `codegen`: some rare checks from rock are only ran when generating C code - this
+    option is the all-in-one, shy of running a C compiler.
 
 ### Continuous Integration
 
@@ -102,8 +124,8 @@ An example .travis.yml is supplied here:
 before_script:
   - sudo apt-get -y -qq install curl make libgc-dev
   - export PATH=$PATH:$PWD/rock/bin:$PWD/sam
-  - git clone --depth=1 git://github.com/nddrylliog/rock.git 
-  - git clone --depth=1 git://github.com/nddrylliog/sam.git 
+  - git clone --depth=1 git://github.com/nddrylliog/rock.git
+  - git clone --depth=1 git://github.com/nddrylliog/sam.git
   - (cd rock && make -s quick-rescue)
   - (cd sam && rock -v)
 
