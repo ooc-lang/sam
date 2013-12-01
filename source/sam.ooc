@@ -25,6 +25,8 @@ Sam: class {
     home: File
     VERSION := "0.8.0"
 
+    init: func
+
     parseArgs: func (args: ArrayList<String>) {
         execFile := File new(args[0])
 

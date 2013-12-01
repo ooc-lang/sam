@@ -204,8 +204,7 @@ GitRepo: class extends CLITool {
 }
 
 GitException: class extends Exception {
-    
     init: super func
-
+    init: super func ~noOrigin
 }
 
