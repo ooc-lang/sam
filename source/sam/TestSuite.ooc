@@ -6,7 +6,7 @@ import os/[Terminal, Time, Env]
 import text/[StringTokenizer]
 
 // ours
-import sam, sam/[Base, CLITool, UseFile, Rock]
+import sam, sam/[Base, CLITool, UseFile, Rock, Arguments]
 
 /**
  * A series of tests
@@ -14,6 +14,7 @@ import sam, sam/[Base, CLITool, UseFile, Rock]
 TestSuite: class {
 
     sam: Sam
+    args ::= sam args
     useFile: UseFile
     testDir, cacheDir: File
     testCases := ArrayList<TestCase> new()
@@ -36,7 +37,7 @@ TestSuite: class {
             sdkFile := File new(oocLibs) find("sdk.use")
             if (sdkFile) {
                 sam log("Compiling sdk from #{sdkFile path}")
-                rock := Rock new(cacheDir path)
+                rock := Rock new(args, cacheDir path)
                 rock quiet = true
                 rock fatal = false
 
@@ -235,7 +236,7 @@ TestCase: class {
             "Main: %s\n" format(oocFile name)
         )
 
-        rock := Rock new(suite cacheDir path)
+        rock := Rock new(suite args, suite cacheDir path)
         rock quiet = true
         rock fatal = false
 

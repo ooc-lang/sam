@@ -74,7 +74,7 @@ Checker: class {
     }
 
     launchRock: func {
-        rock := Rock new(cacheDir path)
+        rock := Rock new(args, cacheDir path)
         rock quiet = true
         rock fatal = false
 
@@ -90,7 +90,12 @@ Checker: class {
     }
 
     prepareCustomUseFile: func {
+        relative := oocFile rebase(sourcePath) path
+        // remove '.ooc'
+        fullName := relative[0..-5]
+
         customUseFile = useFile clone()
+        customUseFile props put("Main", fullName)
         customUseFile props put("SourcePath", sourcePath getAbsolutePath())
         customUseFile write(File new(cacheDir, "checker.use"))
     }

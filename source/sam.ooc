@@ -24,7 +24,7 @@ Sam: class {
 
     args: Arguments
     home ::= args home
-    VERSION := "0.9.0"
+    VERSION := "0.10.0"
 
     init: func
 
@@ -95,7 +95,7 @@ Sam: class {
         log("Pulling repository %s", home path)
         GitRepo new(home path) pull()
         log("Recompiling sam")
-        rock := Rock new(home path)
+        rock := Rock new(args, home path)
         rock clean()
         rock compile()
     }

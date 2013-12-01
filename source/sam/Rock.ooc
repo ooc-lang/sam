@@ -6,13 +6,14 @@ import os/[Process, ShellUtils, Env, Pipe, Terminal]
 import text/StringTokenizer
 
 // ours
-import sam/[CLITool]
+import sam/[CLITool, Arguments]
 
 Rock: class extends CLITool {
 
+    args: Arguments
     ROCK_PATH: static String = null
 
-    init: func (=dir) {
+    init: func (=args, =dir) {
         assert (dir != null)
     }
 
@@ -23,10 +24,17 @@ Rock: class extends CLITool {
         launch(p, "Failed to run rock -x in %s" format(dir))
     }
 
-    compile: func (args: List<String> = null) -> (String, Int) {
-        rockArgs := [rockPath()] as ArrayList
-        if (args) {
-            rockArgs addAll(args)
+    compile: func (userArgs: List<String> = null) -> (String, Int) {
+        rockArgs := ArrayList<String> new()
+
+        rockArgs add(rockPath())
+        if (userArgs) {
+            rockArgs addAll(userArgs)
+        }
+
+        if (args hasLong?("rockargs")) {
+            tokens := args longs["rockargs"] split(",")
+            rockArgs addAll(tokens)
         }
         
         p := Process new(rockArgs)
