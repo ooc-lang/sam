@@ -53,17 +53,6 @@ Arguments: class {
                     args add(arg)
             }
         }
-
-        "Arguments: " println()
-        for (arg in args) {
-            "arg #{arg}" println()
-        }
-        longs each(|key, value|
-            "long '#{key}' => '#{value}'" println()
-        )
-        shorts each(|key, value|
-            "short '#{key}' => '#{value}'" println()
-        )
     }
 
 }

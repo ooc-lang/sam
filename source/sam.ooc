@@ -24,7 +24,7 @@ Sam: class {
 
     args: Arguments
     home ::= args home
-    VERSION := "0.10.0"
+    VERSION := "0.10.1"
 
     init: func
 
