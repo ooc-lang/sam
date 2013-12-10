@@ -6,13 +6,14 @@ import os/[Process, ShellUtils, Env, Pipe, Terminal]
 import text/StringTokenizer
 
 // ours
-import sam/[Base, GitRepo, PropReader, PropWriter]
+import sam/[Base, GitRepo, PropReader, PropWriter, Arguments]
 
 /**
  * Represents a parsed .use file
  */
 UseFile: class {
 
+    args: Arguments
     file: File
     path ::= file path
     name: String
@@ -21,11 +22,11 @@ UseFile: class {
     props := HashMap<String, String> new()
     deps := ArrayList<String> new()
 
-    init: func ~path (.path) {
-        init(File new(path))
+    init: func ~path (.args, .path) {
+        init(args, File new(path))
     }
 
-    init: func ~file (=file) {
+    init: func ~file (=args, =file) {
         name = file name[0..-5]
         dir = file getAbsoluteFile() parent path
 
@@ -39,14 +40,14 @@ UseFile: class {
         deps = original deps clone()
     }
 
-    find: static func (name: String) -> This {
+    find: static func (args: Arguments, name: String) -> This {
         dirs := File new(GitRepo oocLibs()) getChildren() filter(|f| f dir?())
         fileName := "%s.use" format(name)
 
         for (dir in dirs) {
             for (child in dir getChildren()) {
                 if (child name == fileName) {
-                    return This new(child path)
+                    return This new(args, child path)
                 }
             }
         }
@@ -70,7 +71,7 @@ UseFile: class {
     }
 
     repo: func -> GitRepo {
-        GitRepo new(dir)
+        GitRepo new(args, dir)
     }
 
     toString: func -> String {

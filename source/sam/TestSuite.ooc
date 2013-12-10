@@ -245,7 +245,7 @@ TestCase: class {
     }
 
     execute: func {
-        exec := AnyExecutable new(suite cacheDir path, File new(suite cacheDir, "test"))
+        exec := AnyExecutable new(suite args, suite cacheDir path, File new(suite cacheDir, "test"))
         exec quiet = true
         exec fatal = false
         (execOutput, execExitCode) = exec run()

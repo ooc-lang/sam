@@ -115,7 +115,7 @@ Checker: class {
             match {
                 case f file?() =>
                     if (f path toLower() endsWith?(".use")) {
-                        uf := UseFile new(f path)
+                        uf := UseFile new(args, f path)
                         sp := uf props get("SourcePath")
                         if (sp) {
                             dir2 := File new(dir, sp)

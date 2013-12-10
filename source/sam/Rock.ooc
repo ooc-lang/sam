@@ -10,11 +10,10 @@ import sam/[CLITool, Arguments]
 
 Rock: class extends CLITool {
 
-    args: Arguments
     ROCK_PATH: static String = null
 
-    init: func (=args, =dir) {
-        assert (dir != null)
+    init: func (.args, .dir) {
+        super(args, dir)
     }
 
     clean: func {

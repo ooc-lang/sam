@@ -6,15 +6,16 @@ import os/[Process, ShellUtils, Env, Pipe, Terminal]
 import text/StringTokenizer
 
 // ours
-import sam/[Base]
+import sam/[Base, Arguments]
 
 CLITool: class {
 
+    args: Arguments
     dir: String
     quiet := false
     fatal := true
 
-    init: func (=dir) {
+    init: func (=args, =dir) {
         assert (dir != null)
     }
 
@@ -31,6 +32,10 @@ CLITool: class {
     }
 
     launch: func (p: Process, message: String) -> (String, Int) {
+        if (args shorts contains?("v")) {
+            p args join(" ") println()
+        }
+
         p stdErr = Pipe new()
         (output, exitCode) := p getOutput()
 
@@ -51,8 +56,8 @@ AnyExecutable: class extends CLITool {
 
     file: File
 
-    init: func (.dir, =file) {
-        super(dir)
+    init: func (.args, .dir, =file) {
+        super(args, dir)
 
         if (!file exists?()) {
             exe := File new(file path + ".exe")

@@ -24,7 +24,7 @@ Sam: class {
 
     args: Arguments
     home ::= args home
-    VERSION := "0.10.2"
+    VERSION := "0.10.3"
 
     init: func
 
@@ -93,7 +93,7 @@ Sam: class {
 
     update: func {
         log("Pulling repository %s", home path)
-        GitRepo new(home path) pull()
+        GitRepo new(args, home path) pull()
         log("Recompiling sam")
         rock := Rock new(args, home path)
         rock clean()
@@ -121,7 +121,8 @@ Sam: class {
     clone: func (name: String, withDeps: Bool) {
         f := Formula new(this home, name)
         url := f origin
-        repo := GitRepo new(File new(GitRepo oocLibs(), f name) path, url)
+        repoPath := File new(GitRepo oocLibs(), f name) path
+        repo := GitRepo new(args, repoPath, url)
 
         if(repo exists?()) {
             log("[%s:%s]", name, repo getBranch())
@@ -134,7 +135,7 @@ Sam: class {
         }
 
         if (withDeps) {
-            get(UseFile new("%s/%s.use" format(repo dir, name)), false)
+            get(UseFile new(args, "%s/%s.use" format(repo dir, name)), false)
         }
     }
 
@@ -186,11 +187,11 @@ Sam: class {
 
     getUseFile: func (args: Arguments) -> UseFile {
         if (args size > 1) {
-            UseFile new(args[1])
+            UseFile new(args, args[1])
         } else {
             firstUse := firstUseFilePath()
             if (firstUse) {
-                UseFile new(firstUse)
+                UseFile new(args, firstUse)
             } else {
                 log("No .use file specified and none found in current directory. Sayonara!")
                 exit(1)
@@ -260,7 +261,8 @@ ActionTask: class {
         url := f origin
 
         dirName := GitRepo dirName(url)
-        repo := GitRepo new(File new(GitRepo oocLibs(), dirName) path, url)
+        repoPath  := File new(GitRepo oocLibs(), dirName) path
+        repo := GitRepo new(sam args, repoPath, url)
         repoName := name
         if (repo exists?()) {
           "%s:%s" format(name, repo getBranch())
@@ -275,7 +277,7 @@ ActionTask: class {
                 repo clone()
             }
 
-            useFile := UseFile find(name)
+            useFile := UseFile find(sam args, name)
             if (!useFile) {
                 SamException new("use file for %s not found after cloning/pulling" format(name)) throw()
             }
@@ -293,7 +295,7 @@ ActionTask: class {
                 return
             }
 
-            useFile := UseFile find(name)
+            useFile := UseFile find(sam args, name)
             if (!useFile) {
                 SamException new("use file for %s not found after cloning/pulling" format(name)) throw()
             }

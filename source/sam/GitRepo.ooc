@@ -15,12 +15,12 @@ GitRepo: class extends CLITool {
 
     url: String
 
-    init: func (.dir, =url) {
-        super(dir)
+    init: func (.args, .dir, =url) {
+        super(args, dir)
     }
 
-    init: func ~noUrl (.dir) {
-        init(dir, "")
+    init: func ~noUrl (.args, .dir) {
+        init(args, dir, "")
     }
 
     pull: func {
