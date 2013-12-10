@@ -44,7 +44,11 @@ Rock: class extends CLITool {
         (output, exitCode)
     }
 
-    rockPath: static func -> String {
+    rockPath: func -> String {
+        if (args hasLong?("compiler")) {
+            ROCK_PATH = ShellUtils findExecutable(args longs["compiler"], true) path
+        }
+
         if (!ROCK_PATH) {
             ROCK_PATH = ShellUtils findExecutable("rock", true) path
         }
