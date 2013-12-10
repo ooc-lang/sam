@@ -1,4 +1,6 @@
 
+import io/File
+
 SamException: class extends Exception {
     init: super func
     init: super func ~noOrigin
