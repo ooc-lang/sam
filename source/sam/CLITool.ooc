@@ -33,7 +33,7 @@ CLITool: class {
 
     launch: func (p: Process, message: String) -> (String, Int) {
         if (args shorts contains?("v")) {
-            p args join(" ") println()
+            "$ #{p getCommandLine()}" println()
         }
 
         p stdErr = Pipe new()

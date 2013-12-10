@@ -231,16 +231,18 @@ TestCase: class {
 
     compile: func {
         // Write out an ad-hoc .use file
-        File new(suite cacheDir, "test.use") write(
+        testUse := File new(suite cacheDir, "test.use")
+        testUse write(
             "SourcePath: %s\n" format(oocFile parent path) +
-            "Main: %s\n" format(oocFile name)
+            "Main: %s\n" format(oocFile name) +
+            "BinaryPath: test\n"
         )
 
         rock := Rock new(suite args, suite cacheDir path)
         rock quiet = true
         rock fatal = false
 
-        args := ["-o=test", "-q"] as ArrayList<String>
+        args := [testUse path, "-q"] as ArrayList<String>
         (compileOutput, compileExitCode) = rock compile(args)
     }
 
