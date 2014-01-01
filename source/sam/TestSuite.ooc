@@ -30,13 +30,19 @@ TestSuite: class {
 
     compileDeps: func {
         oocLibs := Env["OOC_LIBS"]
-        if (!oocLibs) return
+        if (!oocLibs) {
+            sam log("$OOC_LIBS not set, bailing out")
+            return
+        }
+
+        sam log("Looking for SDK...")
 
         elements := oocLibs split(File pathDelimiter)
         for (el in elements) {
-            sdkFile := File new(oocLibs) find("sdk.use")
+            sdkFile := File new(oocLibs) findShallow("sdk.use", 2)
+
             if (sdkFile) {
-                sam log("Compiling sdk from #{sdkFile path}")
+                sam log("Compiling sdk from #{sdkFile path}...")
                 rock := Rock new(args, cacheDir path)
                 rock quiet = true
                 rock fatal = false
@@ -49,6 +55,8 @@ TestSuite: class {
                     sam log("Output:\n#{compileOutput}")
                     sam log("Continuing...")
                 }
+            } else {
+                sam log("SDK not found, not precompiling...")
             }
         }
     }
