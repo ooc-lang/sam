@@ -11,6 +11,10 @@ all your latest changes in dependent repos.
 sam has no dependencies, apart from rock itself. Get it [from GitHub](
 https://github.com/nddrylliog/rock/#rock) and you'll be golden.
 
+**Important note: sam requires rock 0.9.9 or greater. At the time of
+this writing, it is not released yet and lives in the '99x' branch
+of the rock repo. See [issue #11](https://github.com/nddrylliog/sam/issues/11) for details / instructions.**
+
 For best results, clone sam in `$OOC_LIBS`. You should have write
 access to that directory. For me, my usual choice is `~/Dev`.
 
