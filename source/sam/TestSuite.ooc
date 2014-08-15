@@ -68,14 +68,20 @@ TestSuite: class {
         compileDeps()
 
         sam log("Running tests for %s", useFile _)
-        testDir walk(|f|
-            if (f getName() toLower() endsWith?(".ooc")) {
-                doTest(f getAbsoluteFile())
-                cleanCacheDir(cacheDir)
-            }
+        if (sam args hasLong?("test")) {
+            f := File new(sam args longs get("test"))
+            doTest(f getAbsoluteFile())
+            cleanCacheDir(cacheDir)
+        } else {
+            testDir walk(|f|
+                if (f getName() toLower() endsWith?(".ooc")) {
+                    doTest(f getAbsoluteFile())
+                    cleanCacheDir(cacheDir)
+                }
 
-            true
-        )
+                true
+            )
+        }
         println()
     }
 

@@ -21,6 +21,14 @@ Arguments: class {
         args[index]
     }
 
+    // sure, let's hardcore which args need values.
+    needsValue: func (name: String) -> Bool {
+        match name {
+            case "test" || "mode" => true
+            case => false
+        }
+    }
+
     hasLong?: func (s: String) -> Bool {
         longs contains?(s)
     }
@@ -45,7 +53,12 @@ Arguments: class {
                         tokens := arg[2..-1] split("=")
                         longs put(tokens[0], tokens[1])
                     } else {
-                        longs put(arg[2..-1], "")
+                        name := arg[2..-1]
+                        if (needsValue(name)) {
+                            longs put(name, parser pop())
+                        } else {
+                            longs put(name, "")
+                        }
                     }
                 case arg startsWith?("-") =>
                     shorts put(arg[1..-1], "")

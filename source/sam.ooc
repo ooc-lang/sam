@@ -24,7 +24,7 @@ Sam: class {
 
     args: Arguments
     home ::= args home
-    VERSION := "0.10.5"
+    VERSION := "0.10.6"
 
     init: func
 
@@ -82,8 +82,8 @@ Sam: class {
         log("  * status [USEFILE]: display short git status of all dependencies")
         log("  * promote [USEFILE]: replace read-only github url with a read-write one")
         log("  * clone [--no-deps] [REPONAME]: clone a repository by its formula name")
-        log("  * test [--test=FILE.ooc] [USEFILE]: run all tests or a single specified test")
-        log("  * check [--mode=MODE] FILE.ooc: run a 'syntax', 'check' (default) or 'codegen'")
+        log("  * test [--test FILE.ooc] [USEFILE]: run all tests or a single specified test")
+        log("  * check [--mode MODE] FILE.ooc: run a 'syntax', 'check' (default) or 'codegen'")
         log(" ")
         log("Note: All USEFILE arguments are optional. By default, the")
         log("first .use file of the current directory is used")
