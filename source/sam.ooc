@@ -24,7 +24,7 @@ Sam: class {
 
     args: Arguments
     home ::= args home
-    VERSION := "0.10.6"
+    VERSION := "0.11.0"
 
     init: func
 
@@ -87,6 +87,9 @@ Sam: class {
         log(" ")
         log("Note: All USEFILE arguments are optional. By default, the")
         log("first .use file of the current directory is used")
+        log(" ")
+        log("All commands that run rock (e.g. 'test') accept a --rockargs argument,")
+        log("separated by commas.")
         log(" ")
         log("Copyleft 2013 Amos Wenger aka @nddrylliog")
     }
@@ -164,14 +167,13 @@ Sam: class {
 
     test: func (args: Arguments) {
         useFile := getUseFile(args)
-        repo := useFile repo()
 
-        repoDir := File new(repo dir)
-        testDir := File new(repoDir, "test")
+        useDir := File new(useFile dir)
+        testDir := File new(useDir, "test")
         if (args size > 2) {
             testDir = File new(args[2])
         }
-        cacheDir := File new(repoDir, ".sam-cache")
+        cacheDir := File new(useDir, ".sam-cache")
 
         suite := TestSuite new(this, useFile, testDir getAbsoluteFile(), cacheDir)
         suite run()

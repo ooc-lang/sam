@@ -69,11 +69,15 @@ AnyExecutable: class extends CLITool {
         }
     }
 
-    run: func -> (String, Int) {
-        p := Process new([file path])
+    run: func (userArgs := ArrayList<String> new()) -> (String, Int) {
+        pArgs := ArrayList<String> new()
+        pArgs add(file path)
+        pArgs addAll(userArgs)
+
+        p := Process new(pArgs)
         p setCwd(dir)
 
-        message := "Failed to launch %s in %s" format(file name, dir)
+        message := "Failed to launch %s in %s" format(pArgs join(" "), dir)
         (output, exitCode) := launch(p, message)
         (output, exitCode)
     }

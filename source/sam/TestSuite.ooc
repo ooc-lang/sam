@@ -3,7 +3,7 @@
 import structs/[ArrayList]
 import io/[File]
 import os/[Terminal, Time, Env]
-import text/[StringTokenizer]
+import text/[StringTokenizer, Shlex]
 
 // ours
 import sam, sam/[Base, CLITool, UseFile, Rock, Arguments]
@@ -166,6 +166,7 @@ TestCase: class {
     compileExitCode := -1
     compileTime := 0
 
+    execArgs := ArrayList<String> new()
     execOutput := ""
     execExitCode := -1
     execTime := 0
@@ -191,6 +192,11 @@ TestCase: class {
                 match command {
                     case "shouldfail"  => shouldfail = true
                     case "shouldcrash" => shouldcrash = true
+                    case =>
+                        if (command startsWith?("cliargs")) {
+                            rest := command[("cliargs" size + 1)..-1]
+                            execArgs addAll(Shlex split(rest))
+                        }
                 }
             }
         }
@@ -264,7 +270,7 @@ TestCase: class {
         exec := AnyExecutable new(suite args, suite cacheDir path, File new(suite cacheDir, "test"))
         exec quiet = true
         exec fatal = false
-        (execOutput, execExitCode) = exec run()
+        (execOutput, execExitCode) = exec run(execArgs)
     }
 
     report: func (=pass, =message) {

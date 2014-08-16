@@ -75,7 +75,12 @@ UseFile: class {
     }
 
     toString: func -> String {
-        "%s:%s" format(name, repo() getBranch())
+        repo := repo()
+        if (repo exists?()) {
+            "%s:%s" format(name, repo() getBranch())
+        } else {
+            name
+        }
     }
 
     _: String { get {

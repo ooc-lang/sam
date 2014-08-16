@@ -164,7 +164,8 @@ GitRepo: class extends CLITool {
     }
 
     exists?: func -> Bool {
-        File new(dir) exists?()
+        f := File new(dir, ".git")
+        f exists?() && f dir?()
     }
 
     gitPath: static func -> String {
