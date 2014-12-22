@@ -181,8 +181,11 @@ GitRepo: class extends CLITool {
             if (!OOC_LIBS) {
                 GitException new("$OOC_LIBS environment variable not defined! I'm outta here.") throw()
             }
+            if (OOC_LIBS contains?(File pathDelimiter)) {
+                OOC_LIBS = OOC_LIBS split(File pathDelimiter)[0]
+            }
             if (!(File new(OOC_LIBS) exists?())) {
-                GitException new("$OOC_LIBS is set to %s, which doesn't exist. Ciao!" format(OOC_LIBS)) throw()
+                GitException new("$OOC_LIBS's first element is %s, which doesn't exist. Ciao!" format(OOC_LIBS)) throw()
             }
         }
         OOC_LIBS
