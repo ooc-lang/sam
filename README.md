@@ -126,8 +126,10 @@ An example .travis.yml is supplied here:
 
 ```yaml
 before_script:
+  - sudo apt-get update
   - sudo apt-get -y -qq install curl make libgc-dev
   - export PATH=$PATH:$PWD/rock/bin:$PWD/sam
+  - export OOC_LIBS=$PWD
   - git clone --depth=1 git://github.com/nddrylliog/rock.git
   - git clone --depth=1 git://github.com/nddrylliog/sam.git
   - (cd rock && make -s quick-rescue)
