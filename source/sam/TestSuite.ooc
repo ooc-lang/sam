@@ -68,20 +68,30 @@ TestSuite: class {
         compileDeps()
 
         sam log("Running tests for %s", useFile _)
+
         if (sam args hasLong?("test")) {
             f := File new(sam args longs get("test"))
-            doTest(f getAbsoluteFile())
-            cleanCacheDir(cacheDir)
-        } else {
-            testDir walk(|f|
-                if (f getName() toLower() endsWith?(".ooc")) {
-                    doTest(f getAbsoluteFile())
-                    cleanCacheDir(cacheDir)
-                }
-
-                true
-            )
+            if (!f exists?()) {
+                raise("Test dir not found: #{f path}")
+            }
+            if (f dir?()) {
+                testDir = f
+            } else {
+                doTest(f getAbsoluteFile())
+                cleanCacheDir(cacheDir)
+                println()
+                return
+            }
         }
+
+        testDir walk(|f|
+            if (f getName() toLower() endsWith?(".ooc")) {
+                doTest(f getAbsoluteFile())
+                cleanCacheDir(cacheDir)
+            }
+
+            true
+        )
         println()
     }
 
