@@ -1,4 +1,4 @@
-[![Build Status](https://secure.travis-ci.org/fasterthanlime/sam.png?branch=master)](http://travis-ci.org/fasterthanlime/sam)
+[![Build Status](https://travis-ci.org/fasterthanlime/sam.svg?branch=master)](https://travis-ci.org/fasterthanlime/sam)
 
 ## sam
 
