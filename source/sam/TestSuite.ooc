@@ -35,11 +35,10 @@ TestSuite: class {
             return
         }
 
-        sam log("Looking for SDK...")
-
         elements := oocLibs split(File pathDelimiter)
         for (el in elements) {
-            sdkFile := File new(oocLibs) findShallow("sdk.use", 2)
+            sam log("Looking for sdk in #{el}")
+            sdkFile := File new(el) findShallow("sdk.use", 2)
 
             if (sdkFile) {
                 sam log("Compiling sdk from #{sdkFile path}...")
@@ -55,10 +54,11 @@ TestSuite: class {
                     sam log("Output:\n#{compileOutput}")
                     sam log("Continuing...")
                 }
-            } else {
-                sam log("SDK not found, not precompiling...")
+                return // all done!
             }
         }
+
+        sam log("SDK not found, not precompiling...")
     }
 
     run: func {
