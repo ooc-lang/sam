@@ -1,4 +1,11 @@
 
+expect: func ~char (given: Char, expected: Char) {
+    if (given != expected) {
+        "Fail! given #{given}, expected #{expected}" println()
+        exit(1)
+    }
+}
+
 expect: func ~str (given: String, expected: String) {
     if (given != expected) {
         "Fail! given #{given}, expected #{expected}" println()
