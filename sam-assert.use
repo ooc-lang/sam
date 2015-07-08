@@ -1,0 +1,4 @@
+Name: sam-assert
+Description: Sam's simple assert library makes some tests shorter
+SourcePath: source
+Imports: sam/assert

@@ -1,4 +1,4 @@
 Name: sam
-Description: Sam keeps your ooc repos up to date
+Description: Sam keeps your ooc repos up to date and runs your tests
 SourcePath: source
 Main: sam.ooc
