@@ -1,4 +1,11 @@
 
+expect: func ~bool (given: Bool, expected: Bool) {
+    if (given != expected) {
+        "Fail! given #{given}, expected #{expected}" println()
+        exit(1)
+    }
+}
+
 expect: func ~ptr (given: Pointer, expected: Pointer) {
     if (given != expected) {
         "Fail! given %p, expected %p" printfln(given, expected)
