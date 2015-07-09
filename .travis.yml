@@ -15,3 +15,6 @@ script:
   - export OOC_LIBS=$PWD
   - rock -v sam.use
 
+notifications:
+  webhooks: http://rcmp.pw/freenode/ooc-lang
+
