@@ -105,13 +105,13 @@ TestSuite: class {
 
         if (testCase pass) {
             if (testCase message != "") {
-                sam ok(prelude + "(" + testCase message + ")", "PASS")
+                sam ok(prelude + " (" + testCase message + ")", "PASS")
             } else {
                 sam ok(prelude, "PASS")
             }
         } else {
             if (testCase message != "") {
-                sam fail(prelude + "(" + testCase message + ")", "FAIL")
+                sam fail(prelude + " (" + testCase message + ")", "FAIL")
             } else {
                 sam fail(prelude, "FAIL")
             }
