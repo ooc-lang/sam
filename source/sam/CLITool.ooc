@@ -32,14 +32,15 @@ CLITool: class {
     }
 
     launch: func (p: Process, message: String) -> (String, Int) {
-        if (args shorts contains?("v")) {
+        verbose := args shorts contains?("v")
+        if (verbose) {
             "$ #{p getCommandLine()}" println()
         }
 
         p stdErr = Pipe new()
         (output, exitCode) := p getOutput()
 
-        if (!quiet) {
+        if (!quiet || verbose) {
             printOutput(output)
         }
 
