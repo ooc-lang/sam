@@ -28,7 +28,7 @@ TestSuite: class {
         }
     }
 
-    compileDeps: func {
+    precompileSDK: func {
         oocLibs := Env["OOC_LIBS"]
         if (!oocLibs) {
             sam log("$OOC_LIBS not set, bailing out")
@@ -65,8 +65,6 @@ TestSuite: class {
         cacheDir rm_rf()
         cacheDir mkdirs()
 
-        compileDeps()
-
         sam log("Running tests for %s", useFile _)
 
         if (sam args hasLong?("test")) {
@@ -83,6 +81,9 @@ TestSuite: class {
                 return
             }
         }
+
+        // several tests to compile, probably worth it
+        precompileSDK()
 
         testDir walk(|f|
             if (f getName() toLower() endsWith?(".ooc")) {
