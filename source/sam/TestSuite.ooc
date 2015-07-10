@@ -260,20 +260,11 @@ TestCase: class {
     }
 
     compile: func {
-        // Write the test file to disk with sam builtins in front
-        testOoc := File new(suite cacheDir, oocFile name)
-        testOoc write(
-"// added by sam
-use sam-assert
-
-#{oocFile read()}"
-        )
-
         // Write out an ad-hoc .use file
         testUse := File new(suite cacheDir, "test.use")
         testUse write(
-            "SourcePath: %s\n" format(suite cacheDir path) +
-            "Main: %s\n" format(testOoc name) +
+            "SourcePath: %s\n" format(oocFile parent path) +
+            "Main: %s\n" format(oocFile name) +
             "BinaryPath: test\n"
         )
 
@@ -281,7 +272,7 @@ use sam-assert
         rock quiet = true
         rock fatal = false
 
-        args := [testUse path, "-q"] as ArrayList<String>
+        args := [testUse path, "-q", "--use=sam-assert"] as ArrayList<String>
         (compileOutput, compileExitCode) = rock compile(args)
     }
 
