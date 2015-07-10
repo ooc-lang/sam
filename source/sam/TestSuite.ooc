@@ -223,7 +223,7 @@ TestCase: class {
                     report(false, "compilation should have failed")
                     return
                 }
-            case =>
+            case 1 =>
                 if (shouldfail) {
                     report(true, "")
                     return
@@ -232,6 +232,10 @@ TestCase: class {
                     output = compileOutput
                     return
                 }
+            case =>
+                report(false, "compiler crashed ☃ exit code: %d" format(compileExitCode))
+                output = compileOutput
+                return
         }
 
         execTime = Time measure(||
