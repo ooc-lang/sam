@@ -21,7 +21,7 @@ Arguments: class {
         args[index]
     }
 
-    // sure, let's hardcore which args need values.
+    // sure, let's hardcode which args need values.
     needsValue: func (name: String) -> Bool {
         match name {
             case "test" || "mode" || "rockargs" => true
