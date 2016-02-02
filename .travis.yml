@@ -8,7 +8,7 @@ addons:
       - libgc-dev
 
 before_install:
-  - git clone --depth=1 git://github.com/fasterthanlime/rock.git
+  - git clone --depth=1 git://github.com/ooc-lang/rock.git
   - (cd rock && make -s rescue)
   - export PATH=$PATH:$PWD/rock/bin
 
